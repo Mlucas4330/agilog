@@ -1,5 +1,5 @@
-import { Accordion, AccordionButton, AccordionIcon, AccordionItem, Box, Button, Card, CardBody, Container, Grid, GridItem, Heading, IconButton, Stack, Text } from "@chakra-ui/react"
-import { useState } from "react"
+import { Accordion, Spinner, AccordionPanel, AccordionButton, AccordionIcon, AccordionItem, Box, Button, Card, CardBody, Container, Grid, GridItem, Heading, IconButton, Stack, Text } from "@chakra-ui/react"
+import { useState, useEffect } from "react"
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api'
 import { FaHome } from "react-icons/fa"
 import { FaMapMarked } from "react-icons/fa"
@@ -10,6 +10,7 @@ import { FaUser } from "react-icons/fa"
 function App() {
   const [teste, setTeste] = useState([])
   const [noticia, setNoticia] = useState('')
+  const [isLoading, setIsLoading] = useState(true);
 
   const menus = [
     {
@@ -46,17 +47,41 @@ function App() {
     }
   ]
 
-  const buscaNoticia = async () => {
-    const response = await fetch("http://localhost:3000/api/noticias3")
-
+  const buscaNoticia = async (municipio) => {
+    let response;
+    
+    if (municipio === "Rio de Janeiro") {
+      response = await fetch("http://localhost:3000/api/noticias3")
+    } else if (municipio === "São Paulo") {
+      response = await fetch("http://localhost:3000/api/noticias5")
+    } else if (municipio === "Porto Alegre") {
+      response = await fetch("http://localhost:3000/api/noticias4")
+    }
+  
     const { data } = await response.json()
+  
+    const dataComMunicipio = data.map(item => ({
+        ...item,
+        municipio: municipio
+    }));
 
-    data.forEach(async item => {
+    for (let item of dataComMunicipio) {
       item.position = await getPosition(item.municipio, item.local_interdicao)
-    })
-
-    setTeste(data)
+    }
+    console.log(dataComMunicipio)
+    setTeste(prevTeste => [...prevTeste, ...dataComMunicipio])
   }
+
+  useEffect(() => {
+    const loadNoticias = async () => {
+      for (let municipio of municipios) {
+        await buscaNoticia(municipio.label)
+      }
+      setIsLoading(false)
+    }
+
+    loadNoticias()
+  }, [])
 
   const getPosition = async (municipio, local_interdicao) => {
     const address = municipio + ', ' + local_interdicao
@@ -80,14 +105,16 @@ function App() {
   // }, [])
   return (
     <>
-      <Container maxW={'container.xxl'}>
+      <Container maxW={'container.xxl'} display={"flex"} flexDirection={"column"} justifyContent={"space-between"} minHeight={"100vh"}>
         <Heading as={'h1'} color={'#207155'} fontWeight={'300'} mt={5}>AGILOG</Heading>
         <Grid mt={5} gap={5} templateRows={'1fr auto'} templateColumns={'200px 1fr 500px'}>
           <GridItem>
             <Stack direction="column">
               {
                 menus.map(menu => {
-                  <Button size={'lg'} bgColor="#2F9B7C" colorScheme="green" leftIcon={menu.icon}>{menu.label}</Button>
+                  return (
+                    <Button size={'lg'} bgColor="#2F9B7C" colorScheme="green" leftIcon={menu.icon}>{menu.label}</Button>
+                  )
                 })
               }
             </Stack>
@@ -115,29 +142,35 @@ function App() {
           </GridItem>
           <GridItem>
             <Accordion>
-              {
+              {isLoading ? (
+                <Spinner />
+              ) : (
                 municipios.map(municipio => (
-                  <AccordionItem>
+                  <AccordionItem key={municipio.label} isDisabled={isLoading}>
                     <h2>
-                      <AccordionButton>
+                      <AccordionButton h={'60px'} borderRadius={'8px'} bgColor={'#2F9B7C'} textColor={'white'}>
                         <Box as='span' flex='1' textAlign='left'>
-                          Section 1 title
+                          {municipio.label}
                         </Box>
                         <AccordionIcon />
                       </AccordionButton>
                     </h2>
-                    <AccordionPanel pb={4}>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-                      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-                      veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-                      commodo consequat.
-                    </AccordionPanel>
+                    {
+                      teste.filter(test => test.municipio === municipio.label).map((test, index) => {
+                        console.log(test.municipio)
+                        return (
+                          <AccordionPanel key={index} pb={4} title={test.resumo} bgColor={'white'}>
+                            <Text>{test.local_interdicao}</Text>
+                          </AccordionPanel>
+                        )
+                      })
+                    }
                   </AccordionItem>
                 ))
-              }
+              )}
 
             </Accordion>
-            <Stack direction="column" maxH={'600px'} overflowY={'auto'}>
+            {/* <Stack direction="column" maxH={'600px'} overflowY={'auto'}>
 
               {
                 teste.map(test => (
@@ -150,19 +183,19 @@ function App() {
                   </>
                 ))
               }
-            </Stack>
+            </Stack> */}
           </GridItem>
         </Grid>
+        <Box
+          mt={5}
+          p={'50px 30px'}
+          textAlign={'right'}
+          color={'white'}
+          bgColor={'white'}
+          background={'url(https://legnet.com.br/img/shape-pe.png) top right'}>
+          <strong>© LegNET</strong>
+        </Box>
       </Container>
-      <Box
-        mt={5}
-        p={'50px 30px'}
-        textAlign={'right'}
-        color={'white'}
-        bgColor={'white'}
-        background={'url(https://legnet.com.br/img/shape-pe.png) top right'}>
-        <strong>© LegNET</strong>
-      </Box>
     </>
   )
 }

@@ -49,7 +49,7 @@ app.get('/api/noticias', async function (req, res) {
                 body: JSON.stringify({ content: text.trim() })
             });
             const data = await response.json();
-            arrayTextos.push(JSON.parse(data.message));
+            arrayTextos.push(data.message);
         }
 
         res.json({
@@ -136,7 +136,103 @@ app.get('/api/noticias3', async function (req, res) {
 
     await page.click(inputCidade);
 
+    await page.fill(inputCidade, 'Rio de Janeiro - RJ');
+
+    await page.waitForSelector(botaoPesquisa);
+    await page.click(botaoPesquisa);
+    await page.waitForTimeout(10000);
+
+    const containers = await page.$$(classNameContainer);
+    for (const container of containers) {
+        const wrappers = await container.$$(classNameWrapper);
+        for (const wrapper of wrappers) {
+            const text = await wrapper.textContent();
+            const response = await fetch('https://www.legnet.com.br:1330/assistant/asst_Yk2w9azlqy5F6pc9J8QMANSb', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: text.trim() })
+            });
+            const data = await response.json();
+            arrayTextos.push(JSON.parse(data.message));
+        }
+    }
+
+    res.json({
+        data: arrayTextos
+    })
+
+    await browser.close();
+})
+
+app.get('/api/noticias4', async function (req, res) {
+    const browser = await chromium.launch({
+        headless: false
+    });
+    
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const arrayTextos = [];
+
+    await page.goto('https://www.otempo.com.br/transito', { timeout: 60000 });
+
+    const inputCidade = '#cityInput';
+    const classNameContainer = '.transito__container';
+    const classNameWrapper = '.transito__wrapper';
+    const botaoPesquisa = '.here__autocomplete--results';
+
+    await page.click(inputCidade);
+
     await page.fill(inputCidade, 'Porto Alegre - RS');
+
+    await page.waitForSelector(botaoPesquisa);
+    await page.click(botaoPesquisa);
+    await page.waitForTimeout(10000);
+
+    const containers = await page.$$(classNameContainer);
+    for (const container of containers) {
+        const wrappers = await container.$$(classNameWrapper);
+        for (const wrapper of wrappers) {
+            const text = await wrapper.textContent();
+            const response = await fetch('https://www.legnet.com.br:1330/assistant/asst_Yk2w9azlqy5F6pc9J8QMANSb', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: text.trim() })
+            });
+            const data = await response.json();
+            arrayTextos.push(JSON.parse(data.message));
+        }
+    }
+
+    res.json({
+        data: arrayTextos
+    })
+
+    await browser.close();
+})
+
+app.get('/api/noticias5', async function (req, res) {
+    const browser = await chromium.launch({
+        headless: false
+    });
+    
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const arrayTextos = [];
+
+    await page.goto('https://www.otempo.com.br/transito', { timeout: 60000 });
+
+    const inputCidade = '#cityInput';
+    const classNameContainer = '.transito__container';
+    const classNameWrapper = '.transito__wrapper';
+    const botaoPesquisa = '.here__autocomplete--results';
+
+    await page.click(inputCidade);
+
+    await page.fill(inputCidade, 'São Paulo - SP');
 
     await page.waitForSelector(botaoPesquisa);
     await page.click(botaoPesquisa);
