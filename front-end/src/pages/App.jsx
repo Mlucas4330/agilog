@@ -22,10 +22,6 @@ function App() {
       icon: <FaUser />
     },
     {
-      label: 'GPS',
-      icon: <FaMapMarked />
-    },
-    {
       label: 'Configurações',
       icon: <FaCog />
     },
