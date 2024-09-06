@@ -80,6 +80,8 @@ function App() {
   }, [])
 
   const getPosition = async (municipio, local_interdicao) => {
+    if(!local_interdicao || local_interdicao == 'N/A') return
+
     const address = municipio + ', ' + local_interdicao
     const key = 'AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM'
     const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${key}`)
