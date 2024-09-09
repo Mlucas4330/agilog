@@ -262,6 +262,29 @@ app.get('/api/noticias5', async function (req, res) {
     await browser.close();
 })
 
+app.get('/api/requisitoObrigacao', async function (req, res) {
+    const arrayDados = []
+    const dadosObrigacoes = await fetch('http://localhost/legnet/api/agilog/api_obrigacoesAgilog.php')
+    const { dados } = await dadosObrigacoes.json()
+    for (const dado of dados) {
+        const obrigacao = dado.obrigacao
+        const response = await fetch('https://www.legnet.com.br:1330/assistant/asst_Yk2w9azlqy5F6pc9J8QMANSb', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content: obrigacao.trim() })
+        });
+        const data = await response.json();
+        arrayDados.push(JSON.parse(data.message))
+    }
+    res.json({
+        data: arrayDados
+    })
+    console.log(arrayDados)
+
+})
+
 app.listen(3000, () => {
     console.log('Servidor rodando na porta 3000')
 })

@@ -10,6 +10,7 @@ import { FaUser } from "react-icons/fa"
 function App() {
   const [teste, setTeste] = useState([])
   const [noticia, setNoticia] = useState('')
+  const [obrigacao, setObrigacao] = useState([])
   const [isLoading, setIsLoading] = useState(true);
 
   const menus = [
@@ -68,6 +69,15 @@ function App() {
     setTeste(prevTeste => [...prevTeste, ...dataComMunicipio])
   }
 
+  const buscaObrigacao = async () => {
+    const response = await fetch('http://localhost:3000/api/requisitoObrigacao')
+
+    const { data } = await response.json()
+    console.log(data)
+
+    setObrigacao(data)
+  }
+
   useEffect(() => {
     const loadNoticias = async () => {
       for (let municipio of municipios) {
@@ -75,7 +85,7 @@ function App() {
       }
       setIsLoading(false)
     }
-
+    buscaObrigacao()
     loadNoticias()
   }, [])
 
@@ -168,20 +178,20 @@ function App() {
               )}
 
             </Accordion>
-            {/* <Stack direction="column" maxH={'600px'} overflowY={'auto'}>
+            {<Stack direction="column" maxH={'600px'} overflowY={'auto'}>
 
               {
-                teste.map(test => (
+                obrigacao.map(test => (
                   <>
-                    <Card as={'button'} colorScheme="green" bgColor={'#2F9B7C'} onClick={() => setNoticia(test.resumo)}>
+                    <Card as={'button'} colorScheme="green" bgColor={'#2F9B7C'}>
                       <CardBody>
-                        <Text color={'white'}>{test.municipio} - {test.local_interdicao}</Text>
+                        <Text color={'white'}>{test.resumo}</Text>
                       </CardBody>
                     </Card>
                   </>
                 ))
               }
-            </Stack> */}
+            </Stack>}
           </GridItem>
         </Grid>
         <Box
