@@ -9,8 +9,6 @@ const app = express()
 
 app.use(cors())
 
-// cron.schedule.()
-
 app.get('/api/noticias', async function (req, res) {
     try {
         const browser = await chromium.launch({
@@ -268,7 +266,7 @@ app.get('/api/requisitoObrigacao', async function (req, res) {
     const { dados } = await dadosObrigacoes.json()
     for (const dado of dados) {
         const obrigacao = dado.obrigacao
-        const response = await fetch('https://www.legnet.com.br:1330/assistant/asst_Yk2w9azlqy5F6pc9J8QMANSb', {
+        const response = await fetch('https://www.legnet.com.br:1330/assistant/asst_Wa17zjeZDkfc4PIOqYjwXbum', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -276,7 +274,12 @@ app.get('/api/requisitoObrigacao', async function (req, res) {
             body: JSON.stringify({ content: obrigacao.trim() })
         });
         const data = await response.json();
-        arrayDados.push(JSON.parse(data.message))
+
+        const result = JSON.parse(data.message)
+
+        result.requisito = dado.requisito
+        
+        arrayDados.push(result)
     }
     res.json({
         data: arrayDados
