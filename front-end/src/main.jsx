@@ -6,6 +6,7 @@ import {
 } from "react-router-dom"
 import App from './pages/App.jsx'
 import { ChakraProvider, extendTheme } from '@chakra-ui/react'
+import LoginPage from './pages/LoginPage.jsx'
 
 const theme = extendTheme({
   styles: {
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
   },
 ])
 

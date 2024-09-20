@@ -56,11 +56,11 @@ function App() {
     let response;
 
     if (municipio === "Rio de Janeiro") {
-      response = await fetch("http://localhost:3000/api/noticias3")
+      response = await fetch("http://localhost:5000/api/noticias3")
     } else if (municipio === "São Paulo") {
-      response = await fetch("http://localhost:3000/api/noticias5")
+      response = await fetch("http://localhost:5000/api/noticias5")
     } else if (municipio === "Porto Alegre") {
-      response = await fetch("http://localhost:3000/api/noticias4")
+      response = await fetch("http://localhost:5000/api/noticias4")
     }
 
     const { data } = await response.json()
@@ -78,7 +78,7 @@ function App() {
   }
 
   const buscaObrigacao = async () => {
-    const response = await fetch('http://localhost:3000/api/requisitoObrigacao')
+    const response = await fetch('http://localhost:5000/api/requisitoObrigacao')
 
     const { data } = await response.json()
 

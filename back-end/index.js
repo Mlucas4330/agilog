@@ -3,11 +3,14 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const { chromium } = require('playwright');
 const fetch = require('node-fetch');
 const express = require('express')
+const path = require('path');
 const cors = require('cors')
 
 const app = express()
 
 app.use(cors())
+
+const PORT = process.env.PORT || 5000;
 
 app.get('/api/noticias', async function (req, res) {
     try {
@@ -288,6 +291,12 @@ app.get('/api/requisitoObrigacao', async function (req, res) {
 
 })
 
-app.listen(3000, () => {
-    console.log('Servidor rodando na porta 3000')
-})
+app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
