@@ -281,6 +281,7 @@ app.get('/api/requisitoObrigacao', async function (req, res) {
                 body: JSON.stringify({ content: obrigacao.trim() })
             });
             const data = await response.json();
+            console.log(data.message)
     
             const result = JSON.parse(data.message)
     
