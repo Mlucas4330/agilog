@@ -54,6 +54,7 @@ function App() {
 
   const buscaNoticia = async (municipio) => {
     let response;
+    let arrayNoticias = [];
 
     if (municipio === "Rio de Janeiro") {
       response = await fetch("https://www.legnet.com.br:3001/api/noticias3")
@@ -74,7 +75,28 @@ function App() {
       item.position = await getPosition(item.municipio, item.local_interdicao)
     }
 
+    arrayNoticias = [...dataComMunicipio];
+
+    console.log(arrayNoticias)
+    await enviaNoticia(arrayNoticias);
+
     setTeste(prevTeste => [...prevTeste, ...dataComMunicipio])
+  }
+
+  const enviaNoticia = async (dados) => {
+    const response = await fetch('https://www.legnet.com.br:3001/legnet/api/agilog/agilog_restricoes.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dados)
+    });
+
+    if (!response.ok) {
+        console.error('Erro ao enviar notícias:', response.statusText);
+    } else {
+        console.log('Notícias enviadas com sucesso!');
+    }
   }
 
   const buscaObrigacao = async () => {
@@ -162,7 +184,7 @@ function App() {
                       <>
                         <Card as={'button'} colorScheme="green" bgColor={'#2F9B7C'}>
                           <CardBody>
-                            <Text color={'white'}>{test.requisito} - {test.resumo}</Text>
+                            <Text color={'white'}>{test.origem} - {test.requisito} - {test.resumo}</Text>
                           </CardBody>
                         </Card>
                       </>

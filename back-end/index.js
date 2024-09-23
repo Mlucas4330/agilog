@@ -269,7 +269,7 @@ app.get('/api/noticias5', async function (req, res) {
 app.get('/api/requisitoObrigacao', async function (req, res) {
     try {
         const arrayDados = []
-        const dadosObrigacoes = await fetch('https://www.legnet.com.br/legnet/api/agilog/api_obrigacoesAgilog.php')
+    const dadosObrigacoes = await fetch('https://www.legnet.com.br/legnet/api/agilog/api_obrigacoesAgilog.php')
         const { dados } = await dadosObrigacoes.json()
         for (const dado of dados) {
             const obrigacao = dado.obrigacao
@@ -281,7 +281,6 @@ app.get('/api/requisitoObrigacao', async function (req, res) {
                 body: JSON.stringify({ content: obrigacao.trim() })
             });
             const data = await response.json();
-            console.log(data.message)
     
             const result = JSON.parse(data.message)
     
