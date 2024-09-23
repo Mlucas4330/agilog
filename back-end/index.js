@@ -4,7 +4,10 @@ const { chromium } = require('playwright');
 const fetch = require('node-fetch');
 const express = require('express')
 const path = require('path');
-const cors = require('cors')
+const cors = require('cors');
+const fs         = require('fs');
+const https      = require('https');
+
 
 const app = express()
 
@@ -265,7 +268,7 @@ app.get('/api/noticias5', async function (req, res) {
 
 app.get('/api/requisitoObrigacao', async function (req, res) {
     const arrayDados = []
-    const dadosObrigacoes = await fetch('http://localhost/legnet/api/agilog/api_obrigacoesAgilog.php')
+    const dadosObrigacoes = await fetch('https://www.legnet.com.br/legnet/api/agilog/api_obrigacoesAgilog.php')
     const { dados } = await dadosObrigacoes.json()
     for (const dado of dados) {
         const obrigacao = dado.obrigacao
@@ -297,6 +300,16 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-app.listen(PORT, () => {
+//app.listen(PORT, () => {
+//    console.log(`Server is running on port ${PORT}`);
+//  });
+//
+
+const options = {
+    key: fs.readFileSync("/etc/letsencrypt/live/www.legnet.com.br/privkey.pem"),
+    cert: fs.readFileSync("/etc/letsencrypt/live/www.legnet.com.br/cert.pem"),
+  };
+
+https.createServer(options, app).listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
