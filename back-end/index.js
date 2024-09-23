@@ -272,7 +272,7 @@ app.get('/api/requisitoObrigacao', async function (req, res) {
     const { dados } = await dadosObrigacoes.json()
     for (const dado of dados) {
         const obrigacao = dado.obrigacao
-        const response = await fetch('https://www.legnet.com.br:1330/assistant/asst_Wa17zjeZDkfc4PIOqYjwXbum', {
+        const response = await fetch('https://www.legnet.com.br:1330/assistant/asst_Yk2w9azlqy5F6pc9J8QMANSb', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -283,6 +283,7 @@ app.get('/api/requisitoObrigacao', async function (req, res) {
 
         const result = JSON.parse(data.message)
 
+        result.origem = dado.origem
         result.requisito = dado.requisito
         
         arrayDados.push(result)
