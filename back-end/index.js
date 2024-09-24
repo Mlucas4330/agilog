@@ -270,7 +270,7 @@ app.get('/api/requisitoObrigacao', async function (req, res) {
     try {
         const arrayDados = []
     const dadosObrigacoes = await fetch('https://www.legnet.com.br/legnet/api/json/1/legislacoesRestricao.json' + '?_=' + new Date().getTime())
-        const { dados } = await dadosObrigacoes
+        const { dados } = await dadosObrigacoes.json()
         for (const dado of dados) {
             const obrigacao = dado.obrigacao
             const response = await fetch('https://www.legnet.com.br:1330/assistant/asst_Yk2w9azlqy5F6pc9J8QMANSb', {
