@@ -198,43 +198,16 @@ function App() {
   };
 
   const buscaObrigacao = async () => {
-    const arrayDados = [];
-    const dadosObrigacoes = await fetch(
-      "https://www.legnet.com.br/legnet/api/json/1/legislacoesRestricao.json" +
-        "?_=" +
-        new Date().getTime()
-    );
+    const response = await fetch('https://www.legnet.com.br:3001/api/requisitoObrigacao')
 
-    const { dados } = await dadosObrigacoes.json();
-
-    for (const dado of dados) {
-      const obrigacao = dado.obrigacao;
-      const response = await fetch(
-        "https://www.legnet.com.br:1330/assistant/asst_Yk2w9azlqy5F6pc9J8QMANSb",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content: obrigacao.trim() }),
-        }
-      );
-      const data = await response.json();
-
-      const result = JSON.parse(data.message);
-
-      result.origem = dado.origem;
-      result.requisito = dado.requisito;
-
-      arrayDados.push(result);
-    }
+    const { data } = await response.json()
 
     // for (let item of data) {
     //   item.center = await getCenterCircle(item.local_interdicao)
     // }
 
-    setObrigacao(arrayDados);
-    montaExcel(arrayDados, "obrigacao");
+    setObrigacao(data);
+    montaExcel(data, "obrigacao");
     setIsLoadingObr(false);
   };
 
