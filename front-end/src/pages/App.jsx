@@ -84,6 +84,7 @@ function App() {
   }
 
   const enviaNoticia = async (dados) => {
+    
     const response = await fetch('https://www.legnet.com.br/legnet/api/agilog/agilog_restricoes.php', {
         method: 'POST',
         headers: {
