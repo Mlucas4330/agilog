@@ -15,10 +15,9 @@ import {
   Heading,
   Stack,
   Text,
-  Flex,
-  position,
+  Flex
 } from "@chakra-ui/react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -422,7 +421,7 @@ function App() {
         <Heading as={"h1"} color={"#207155"} fontWeight={"300"} mt={5}>
           AGILOG
         </Heading>
-        <Flex justifyContent={"center"} gap={5}>
+        <Flex justifyContent={"center"} gap={5} mt={5}>
           {menus.map((menu, index) => (
             <Button
               key={index}
@@ -565,16 +564,6 @@ function App() {
           </GridItem>
         </Grid>
       </Container>
-      <Box
-        mt={5}
-        p={"50px 30px"}
-        textAlign={"right"}
-        color={"white"}
-        bgColor={"white"}
-        background={"url(https://legnet.com.br/img/shape-pe.png) top right"}
-      >
-        <strong>© LegNET</strong>
-      </Box>
     </>
   );
 }

@@ -8,6 +8,8 @@ import App from './pages/App.jsx'
 import { ChakraProvider, extendTheme } from '@chakra-ui/react'
 import LoginPage from './pages/LoginPage.jsx'
 import StatisticsPage from './pages/StatisticsPage.jsx'
+import Header from './components/Header.jsx'
+import Footer from './components/Footer.jsx'
 
 const theme = extendTheme({
   styles: {
@@ -36,6 +38,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <ChakraProvider theme={theme}>
+    <Header />
     <RouterProvider router={router} />
+    <Footer />
   </ChakraProvider>
 )
