@@ -148,7 +148,7 @@ app.get("/api/noticias3", async function (req, res) {
 
   await page.click(inputCidade);
 
-  await page.fill(inputCidade, "Rio de Janeiro - RJ");
+  await page.fill(inputCidade, "Taboão da Serra - SP");
 
   await page.waitForSelector(botaoPesquisa);
   await page.click(botaoPesquisa);
@@ -287,7 +287,7 @@ app.get("/api/requisitoObrigacao", async function (req, res) {
   try {
     const arrayDados = [];
     const dadosObrigacoes = await fetch(
-      "https://www.legnet.com.br/legnet/api/json/1/legislacoesRestricao.json" +
+      "https://www.legnet.com.br/legnet/api/json/2791/legislacoesRestricao.json" +
         "?_=" +
         new Date().getTime()
     );
@@ -331,10 +331,11 @@ app.get("/api/requisitoObrigacao", async function (req, res) {
       }
     );
 
+    
     if (!resposta.ok) {
-      console.error("Erro ao enviar notícias:", resposta.statusText);
+      res.status(500).json({ ok: false, message: "Erro ao enviar notícias" });
     } else {
-      console.log("Notícias enviadas com sucesso!");
+      res.status(200).json({ ok: true, message: "Notícias enviadas com sucesso!" });
     }
   } catch (error) {
     console.error("Erro ao analisar JSON:", error);

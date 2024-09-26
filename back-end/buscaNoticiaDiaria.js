@@ -6,6 +6,9 @@ const municipios = [
   {
     label: "São Paulo",
   },
+  {
+    label: "Taboão da Serra",
+  },
 ];
 
 const geocode = async (address) => {
@@ -56,7 +59,7 @@ const buscaNoticia = async (municipio) => {
   //   timeout: 60000,
   // };
 
-  if (municipio === "Rio de Janeiro") {
+  if (municipio === "Taboão da Serra") {
     response = await fetch("https://www.legnet.com.br:3001/api/noticias3");
   } else if (municipio === "São Paulo") {
     response = await fetch("https://www.legnet.com.br:3001/api/noticias5");
@@ -104,18 +107,19 @@ const enviaObrigacao = async () => {
   const response = await fetch(
     "https://www.legnet.com.br:3001/api/requisitoObrigacao"
   );
-
-  if (!response.ok) {
-    console.error("Erro ao enviar obrigacoes:", response.statusText);
+  const data = await response.json();
+  
+  if (!data.ok) {
+    console.error("Erro ao enviar obrigacoes:", data.statusText);
   } else {
     console.log("Obrigações enviadas com sucesso!");
   }
 };
 
 const main = async () => {
-  for (let municipio of municipios) {
-    await buscaNoticia(municipio.label);
-  }
+  // for (let municipio of municipios) {
+  //   await buscaNoticia(municipio.label);
+  // }
   await enviaObrigacao();
 };
 
