@@ -16,6 +16,7 @@ import {
   Stack,
   Text,
   Flex,
+  position,
 } from "@chakra-ui/react";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -231,6 +232,7 @@ function App() {
     setMarkers((prevMarker) => [...prevMarker, ...newMarkers]);
 
     setTeste((prevTeste) => [...prevTeste, ...data]);
+
     montaExcel(data, "noticia");
   };
 
@@ -294,7 +296,14 @@ function App() {
 
   // const geocode = async (address) => {
   //   const key = "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM";
+  // const geocode = async (address) => {
+  //   const key = "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM";
 
+  //   const response = await fetch(
+  //     `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+  //       address
+  //     )}&key=${key}`
+  //   );
   //   const response = await fetch(
   //     `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
   //       address
@@ -302,10 +311,19 @@ function App() {
   //   );
 
   //   const data = await response.json();
+  //   const data = await response.json();
 
   //   if (data.status === "OK") {
   //     const location = data.results[0].geometry.location;
+  //   if (data.status === "OK") {
+  //     const location = data.results[0].geometry.location;
 
+  //     return {
+  //       lat: location.lat,
+  //       lng: location.lng,
+  //     };
+  //   }
+  // };
   //     return {
   //       lat: location.lat,
   //       lng: location.lng,
@@ -321,9 +339,20 @@ function App() {
   //     local_interdicao == "não mencionado"
   //   )
   //     return;
+  // const getCenterCircle = async (local_interdicao) => {
+  //   if (
+  //     !local_interdicao ||
+  //     local_interdicao == "N/A" ||
+  //     local_interdicao == "Não especificado" ||
+  //     local_interdicao == "não mencionado"
+  //   )
+  //     return;
 
   //   const coordenates = await geocode(local_interdicao);
+  //   const coordenates = await geocode(local_interdicao);
 
+  //   return coordenates;
+  // };
   //   return coordenates;
   // };
 
@@ -395,7 +424,9 @@ function App() {
         </Heading>
         <Flex justifyContent={"center"} gap={5}>
           {menus.map((menu, index) => (
+          {menus.map((menu, index) => (
             <Button
+              key={index}
               key={index}
               w={"200px"}
               size={"lg"}
@@ -507,6 +538,10 @@ function App() {
                       .filter((test) => test.municipio === municipio.label)
                       .map((test, index) => (
                         <AccordionPanel
+                          onClick={() => handleMarker(test.resumo, test.position)}
+                          _hover={{
+                            cursor: 'pointer'
+                          }}
                           key={index}
                           pb={4}
                           title={test.resumo}
