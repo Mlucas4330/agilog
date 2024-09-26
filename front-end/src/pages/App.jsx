@@ -17,20 +17,40 @@ import {
   Text,
   Flex,
 } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
-import { GoogleMap, LoadScript, Marker, Circle } from "@react-google-maps/api";
+import { useState, useEffect, useRef } from "react";
+import {
+  GoogleMap,
+  useJsApiLoader,
+  Marker,
+  Circle,
+} from "@react-google-maps/api";
 import { FaFileAlt, FaFileExcel, FaHome } from "react-icons/fa";
 import { FaCog } from "react-icons/fa";
 import { FaTimesCircle } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
 import * as XLSX from "xlsx";
+import { useNavigate } from 'react-router-dom';
 
 function App() {
+  
   const [teste, setTeste] = useState([]);
   const [obrigacao, setObrigacao] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingObr, setIsLoadingObr] = useState(true);
-
+  const [markers, setMarkers] = useState([]);
+  const [municipios, setMunicipios] = useState([]);
+  const [center, setCenter] = useState({
+    lat: -15.77972,
+    lng: -47.92972,
+  });
+  const [zoom, setZoom] = useState(4);
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM",
+  });
+  const navigate = useNavigate();
+  const paginaEstatistica = () => {
+    navigate('/estatisticas'); 
+  };
   const menus = [
     {
       label: "Dashboard",
@@ -55,7 +75,7 @@ function App() {
     {
       label: "Estatísticas",
       icon: <FaFileAlt />,
-      action: () => console.log("Estatísticas clicado"),
+      action: () => paginaEstatistica(),
     },
     {
       label: "Sair",
@@ -64,17 +84,28 @@ function App() {
     },
   ];
 
-  const municipios = [
-    {
-      label: "Rio de Janeiro",
-    },
-    {
-      label: "São Paulo",
-    },
-    {
-      label: "Porto Alegre",
-    },
-  ];
+  const getCodClienteFromURL = () => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("cod_cliente");
+  };
+
+  const buscaMunicipio = async () => {
+    const cod_cliente = getCodClienteFromURL();
+    const response = await fetch(
+      "https://www.legnet.com.br/legnet/api/agilog/api_municipios.php",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ cod_cliente }),
+        timeout: 60000,
+      }
+    );
+
+    const data = await response.json();
+    setMunicipios(data);
+  };
 
   const circleOptions = {
     strokeColor: "#FF0000",
@@ -191,24 +222,68 @@ function App() {
     );
 
     const data = await response.json();
-    console.log(data);
+
+    const newMarkers = data.map((item) => ({
+      resumo: item.resumo,
+      position: item.position,
+      cor: "red",
+    }));
+    setMarkers((prevMarker) => [...prevMarker, ...newMarkers]);
 
     setTeste((prevTeste) => [...prevTeste, ...data]);
     montaExcel(data, "noticia");
   };
 
   const buscaObrigacao = async () => {
-    const response = await fetch('https://www.legnet.com.br:3001/api/requisitoObrigacao')
+    const cod_cliente = getCodClienteFromURL();
+    const response = await fetch(
+      "https://www.legnet.com.br/legnet/api/agilog/buscaLegislacoesAtualizadas.php",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ cod_cliente }),
+        timeout: 60000,
+      }
+    );
 
-    const { data } = await response.json()
+    const data = await response.json();
 
     // for (let item of data) {
     //   item.center = await getCenterCircle(item.local_interdicao)
     // }
-
+    console.log(data);
     setObrigacao(data);
     montaExcel(data, "obrigacao");
     setIsLoadingObr(false);
+  };
+
+  const salvaCiente = async (id) => {
+    const response = await fetch(
+      "https://www.legnet.com.br/legnet/api/agilog/salva_ciente.php",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+        timeout: 60000,
+      }
+    );
+    if (!response.ok) {
+      console.error(
+        "Erro ao enviar que o cliente está ciente:",
+        response.statusText
+      );
+    } else {
+      setTeste((prevTeste) =>
+        prevTeste.map((test) =>
+          test.id === id ? { ...test, ciente: "S" } : test
+        )
+      );
+      console.log("Ciente enviado com sucesso!");
+    }
   };
 
   const loadNoticias = async () => {
@@ -217,40 +292,40 @@ function App() {
     setIsLoading(false);
   };
 
-  const geocode = async (address) => {
-    const key = "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM";
+  // const geocode = async (address) => {
+  //   const key = "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM";
 
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-        address
-      )}&key=${key}`
-    );
+  //   const response = await fetch(
+  //     `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+  //       address
+  //     )}&key=${key}`
+  //   );
 
-    const data = await response.json();
+  //   const data = await response.json();
 
-    if (data.status === "OK") {
-      const location = data.results[0].geometry.location;
+  //   if (data.status === "OK") {
+  //     const location = data.results[0].geometry.location;
 
-      return {
-        lat: location.lat,
-        lng: location.lng,
-      };
-    }
-  };
+  //     return {
+  //       lat: location.lat,
+  //       lng: location.lng,
+  //     };
+  //   }
+  // };
 
-  const getCenterCircle = async (local_interdicao) => {
-    if (
-      !local_interdicao ||
-      local_interdicao == "N/A" ||
-      local_interdicao == "Não especificado" ||
-      local_interdicao == "não mencionado"
-    )
-      return;
+  // const getCenterCircle = async (local_interdicao) => {
+  //   if (
+  //     !local_interdicao ||
+  //     local_interdicao == "N/A" ||
+  //     local_interdicao == "Não especificado" ||
+  //     local_interdicao == "não mencionado"
+  //   )
+  //     return;
 
-    const coordenates = await geocode(local_interdicao);
+  //   const coordenates = await geocode(local_interdicao);
 
-    return coordenates;
-  };
+  //   return coordenates;
+  // };
 
   // const getPosition = async (municipio, local_interdicao) => {
   //   if (['N/A', 'Não especificado', 'Nenhuma informação de trânsito no local', ''].includes(local_interdicao)) return
@@ -262,9 +337,22 @@ function App() {
   //   return coordenates
   // }
 
+  const handleMarker = (resumo, position) => {
+    setMarkers((prevMarkers) =>
+      prevMarkers.map((marker) =>
+        marker.resumo === resumo
+          ? { ...marker, cor: "blue" }
+          : { ...marker, cor: "red" }
+      )
+    );
+    setCenter(position);
+    setZoom(10);
+  };
+
   useEffect(() => {
     buscaObrigacao();
     loadNoticias();
+    buscaMunicipio();
   }, []);
 
   return (
@@ -306,8 +394,9 @@ function App() {
           AGILOG
         </Heading>
         <Flex justifyContent={"center"} gap={5}>
-          {menus.map((menu) => (
+          {menus.map((menu, index) => (
             <Button
+              key={index}
               w={"200px"}
               size={"lg"}
               bgColor="#2F9B7C"
@@ -334,10 +423,16 @@ function App() {
               <Spinner />
             ) : (
               <Stack direction="column" maxH={"500px"} overflowY={"auto"}>
-                {obrigacao.map((test) => (
+                {obrigacao.map((test, index) => (
                   <>
-                    <Card as={"button"} colorScheme="green" bgColor={"#2F9B7C"}>
+                    <Card
+                      key={index}
+                      as={"button"}
+                      colorScheme="green"
+                      bgColor={"#2F9B7C"}
+                    >
                       <CardBody>
+                        <input type="checkbox" />
                         <Text color={"white"}>
                           {test.origem} - {test.requisito} - {test.resumo}
                         </Text>
@@ -349,25 +444,30 @@ function App() {
             )}
           </GridItem>
           <GridItem>
-            <LoadScript googleMapsApiKey="AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM">
+            {isLoaded && (
               <GoogleMap
                 mapContainerStyle={{
                   height: "600px",
                 }}
-                center={{
-                  lat: -15.77972,
-                  lng: -47.92972,
-                }}
-                zoom={4}
+                center={center}
+                zoom={zoom}
               >
-                {teste.map((test) => (
-                  <Marker position={test.position} />
+                {markers.map((marker, index) => (
+                  <Marker
+                    key={index}
+                    position={marker.position}
+                    icon={`http://maps.google.com/mapfiles/ms/icons/${marker.cor}-dot.png`}
+                  />
                 ))}
-                {obrigacao.map((obr) => (
-                  <Circle center={obr.center} options={circleOptions} />
+                {obrigacao.map((obr, index) => (
+                  <Circle
+                    key={index}
+                    center={obr.center}
+                    options={circleOptions}
+                  />
                 ))}
               </GoogleMap>
-            </LoadScript>
+            )}
           </GridItem>
           <GridItem>
             <Heading
@@ -411,7 +511,21 @@ function App() {
                           pb={4}
                           title={test.resumo}
                           bgColor={"white"}
+                          display={"flex"}
+                          gap={"5px"}
+                          onClick={() =>
+                            handleMarker(test.resumo, test.position)
+                          }
+                          _hover={{
+                            cursor: "pointer",
+                          }}
                         >
+                          <input
+                            id={`checkboxCiente_${test.id}`}
+                            type="checkbox"
+                            checked={test.ciente === "S"}
+                            onChange={() => salvaCiente(test.id)}
+                          />
                           <Text>{test.local_interdicao}</Text>
                         </AccordionPanel>
                       ))}

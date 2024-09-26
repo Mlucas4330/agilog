@@ -1,35 +1,33 @@
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
 
 const municipios = [
   {
-    label: "Rio de Janeiro",
-  },
-  {
     label: "São Paulo",
-  },
-  {
-    label: "Porto Alegre",
   },
 ];
 
 const geocode = async (address) => {
-    const key = 'AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM'
+  const key = "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM";
 
-    const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${key}`)
+  const response = await fetch(
+    `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+      address
+    )}&key=${key}`
+  );
 
-    const data = await response.json()
+  const data = await response.json();
 
-    if (data.status === 'OK') {
-      const location = data.results[0].geometry.location
+  if (data.status === "OK") {
+    const location = data.results[0].geometry.location;
 
-      return {
-        lat: location.lat,
-        lng: location.lng
-      }
-    }
+    return {
+      lat: location.lat,
+      lng: location.lng,
+    };
   }
+};
 
 const getPosition = async (municipio, local_interdicao) => {
   if (
@@ -49,14 +47,13 @@ const getPosition = async (municipio, local_interdicao) => {
   return coordenates;
 };
 
-
 const buscaNoticia = async (municipio) => {
   let response;
   let arrayNoticias = [];
 
   // const options = {
   //   agent,
-  //   timeout: 60000, 
+  //   timeout: 60000,
   // };
 
   if (municipio === "Rio de Janeiro") {
@@ -92,7 +89,7 @@ const enviaNoticia = async (dados) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(dados),
-      timeout: 60000
+      timeout: 60000,
     }
   );
 
@@ -103,10 +100,23 @@ const enviaNoticia = async (dados) => {
   }
 };
 
+const enviaObrigacao = async () => {
+  const response = await fetch(
+    "https://www.legnet.com.br:3001/api/requisitoObrigacao"
+  );
+
+  if (!response.ok) {
+    console.error("Erro ao enviar obrigacoes:", response.statusText);
+  } else {
+    console.log("Obrigações enviadas com sucesso!");
+  }
+};
+
 const main = async () => {
   for (let municipio of municipios) {
     await buscaNoticia(municipio.label);
   }
+  await enviaObrigacao();
 };
 
 // Chama a função principal
