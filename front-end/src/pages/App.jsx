@@ -424,9 +424,7 @@ function App() {
         </Heading>
         <Flex justifyContent={"center"} gap={5}>
           {menus.map((menu, index) => (
-          {menus.map((menu, index) => (
             <Button
-              key={index}
               key={index}
               w={"200px"}
               size={"lg"}
@@ -538,10 +536,6 @@ function App() {
                       .filter((test) => test.municipio === municipio.label)
                       .map((test, index) => (
                         <AccordionPanel
-                          onClick={() => handleMarker(test.resumo, test.position)}
-                          _hover={{
-                            cursor: 'pointer'
-                          }}
                           key={index}
                           pb={4}
                           title={test.resumo}
