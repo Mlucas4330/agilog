@@ -15,7 +15,7 @@ import {
   Heading,
   Stack,
   Text,
-  Flex
+  Flex,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import {
@@ -29,10 +29,9 @@ import { FaCog } from "react-icons/fa";
 import { FaTimesCircle } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
 import * as XLSX from "xlsx";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 function App() {
-  
   const [teste, setTeste] = useState([]);
   const [obrigacao, setObrigacao] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +48,7 @@ function App() {
   });
   const navigate = useNavigate();
   const paginaEstatistica = () => {
-    navigate('/estatisticas'); 
+    navigate("/estatisticas");
   };
   const menus = [
     {
@@ -238,15 +237,9 @@ function App() {
   const buscaObrigacao = async () => {
     const cod_cliente = getCodClienteFromURL();
     const response = await fetch(
-      "https://www.legnet.com.br/legnet/api/agilog/buscaLegislacoesAtualizadas.php",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ cod_cliente }),
-        timeout: 60000,
-      }
+      "https://www.legnet.com.br/legnet/api/json/2791/legislacoesAtualizadasResumo.json" +
+        "?_=" +
+        new Date().getTime()
     );
 
     const data = await response.json();

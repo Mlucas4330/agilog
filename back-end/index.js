@@ -14,6 +14,80 @@ app.use(cors());
 
 const PORT = process.env.PORT || 3001;
 
+const enviaObrigacao = async (
+  origem,
+  requisito,
+  obrigacao,
+  resumo,
+  local_interdicao,
+  cod_legislacao,
+  cod_obrigacao,
+  cod_cliente_leg,
+  cod_cliente_usr,
+  cod_pais
+) => {
+  try {
+    // Log dos parâmetros recebidos
+    console.log("Parâmetros recebidos:", {
+      origem,
+      requisito,
+      obrigacao,
+      resumo,
+      local_interdicao,
+      cod_legislacao,
+      cod_obrigacao,
+      cod_cliente_leg,
+      cod_cliente_usr,
+      cod_pais,
+    });
+
+    const arrayDados = [];
+    arrayDados.push({
+      origem: origem,
+      requisito: requisito,
+      obrigacao: obrigacao,
+      resumo: resumo,
+      local_interdicao: local_interdicao,
+      cod_legislacao: cod_legislacao,
+      cod_obrigacao: cod_obrigacao,
+      cod_cliente_leg: cod_cliente_leg,
+      cod_cliente_usr: cod_cliente_usr,
+      cod_pais: cod_pais,
+    });
+
+    // Log dos dados a serem enviados
+    console.log(
+      "Dados que serão enviados para a API:",
+      JSON.stringify({ dados: arrayDados })
+    );
+
+    const resposta = await fetch(
+      "https://www.legnet.com.br/legnet/api/agilog/insertOuUpdateDasLeis.php",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ dados: arrayDados }),
+      }
+    );
+
+    console.log("Resposta do fetch:", await resposta.json());
+
+    if (resposta.ok) {
+      console.log("Obrigação enviada com sucesso");
+      return { ok: true, message: "Obrigação enviada" };
+    } else {
+      const errorMessage = await resposta.text();
+      console.error("Erro ao enviar obrigação", errorMessage);
+      return { ok: false, message: "Erro ao enviar notícias" };
+    }
+  } catch (error) {
+    console.error("Erro ao tentar enviar a obrigação", error);
+    return { ok: false, message: "Erro na requisição" };
+  }
+};
+
 app.get("/api/noticias", async function (req, res) {
   try {
     const browser = await chromium.launch({
@@ -283,6 +357,41 @@ app.get("/api/noticias5", async function (req, res) {
   await browser.close();
 });
 
+async function obrigaParaAssistente(obrigacao) {
+  try {
+    const response = await fetch(
+      "https://www.legnet.com.br:1330/assistant/asst_Yk2w9azlqy5F6pc9J8QMANSb",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: obrigacao.trim(),
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    return data.message;
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+function tryJson(data) {
+  return new Promise((resolve, reject) => {
+    try {
+      const result = JSON.parse(data);
+
+      resolve(result);
+    } catch (error) {
+      reject(data);
+    }
+  });
+}
+
 app.get("/api/requisitoObrigacao", async function (req, res) {
   try {
     const arrayDados = [];
@@ -292,51 +401,43 @@ app.get("/api/requisitoObrigacao", async function (req, res) {
         new Date().getTime()
     );
     const { dados } = await dadosObrigacoes.json();
-    for (const dado of dados) {
+    const promessas = [];
+
+    for (let index = 0; index < dados.length; index++) {
+      if (index > 2) break;
+
+      const dado = dados[index];
       const obrigacao = dado.obrigacao;
-      const response = await fetch(
-        "https://www.legnet.com.br:1330/assistant/asst_Yk2w9azlqy5F6pc9J8QMANSb",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content: obrigacao.trim() }),
-        }
-      );
-      const data = await response.json();
 
-      const result = JSON.parse(data.message);
+      const promessa = (async () => {
+        const data = await obrigaParaAssistente(obrigacao.trim());
+        return tryJson(data)
+          .then(async (result) => {
+            await enviaObrigacao(
+              dado.origem,
+              dado.requisito,
+              dado.obrigacao,
+              result.resumo,
+              result.local_interdicao,
+              dado.cod_legislacao,
+              dado.cod_obrigacao,
+              dado.cod_cliente_leg,
+              dado.cod_cliente_usr,
+              dado.cod_pais
+            );
+          })
+          .catch((errorData) => {
+            console.log(errorData);
+          });
+      })();
 
-      result.origem = dado.origem;
-      result.requisito = dado.requisito;
-      result.obrigacao = dado.obrigacao;
-      result.cod_legislacao = dado.cod_legislacao;
-      result.cod_obrigacao = dado.cod_obrigacao;
-      result.cod_cliente_leg = dado.cod_cliente_leg;
-      result.cod_cliente_usr = dado.cod_cliente_usr;
-      result.cod_pais = dado.cod_pais;
-
-      arrayDados.push(result);
+      promessas.push(promessa);
     }
 
-    const resposta = await fetch(
-      "https://www.legnet.com.br/legnet/api/agilog/insertOuUpdateDasLeis.php",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ arrayDados }),
-      }
-    );
+    await Promise.all(promessas);
 
-    
-    if (!resposta.ok) {
-      res.status(500).json({ ok: false, message: "Erro ao enviar notícias" });
-    } else {
-      res.status(200).json({ ok: true, message: "Notícias enviadas com sucesso!" });
-    }
+    // Retorna uma mensagem de sucesso quando tudo for concluído
+    res.send({ok: true, message: "Todas as obrigações foram processadas com sucesso."});
   } catch (error) {
     console.error("Erro ao analisar JSON:", error);
   }
@@ -348,10 +449,9 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "build", "index.html"));
 });
 
-//app.listen(PORT, () => {
-//    console.log(`Server is running on port ${PORT}`);
-//  });
-//
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`);
+// });
 
 const options = {
   key: fs.readFileSync("/etc/letsencrypt/live/www.legnet.com.br/privkey.pem"),

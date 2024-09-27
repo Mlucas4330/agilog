@@ -117,9 +117,9 @@ const enviaObrigacao = async () => {
 };
 
 const main = async () => {
-  // for (let municipio of municipios) {
-  //   await buscaNoticia(municipio.label);
-  // }
+  for (let municipio of municipios) {
+    await buscaNoticia(municipio.label);
+  }
   await enviaObrigacao();
 };
 
