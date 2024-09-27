@@ -282,6 +282,33 @@ function App() {
     setZoom(10);
   };
 
+  const salvaCienteLei = async (id) => {
+    const response = await fetch(
+      "https://www.legnet.com.br/legnet/api/agilog/salva_cienteLei.php",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+        timeout: 60000,
+      }
+    );
+    if (!response.ok) {
+      console.error(
+        "Erro ao enviar que o cliente está ciente:",
+        response.statusText
+      );
+    } else {
+      setObrigacao((prevTeste) =>
+        prevTeste.map((test) =>
+          test.id === id ? { ...test, ciente: "S" } : test
+        )
+      );
+      console.log("Ciente enviado com sucesso!");
+    }
+  };
+
   useEffect(() => {
     buscaObrigacao();
     loadNoticias();
@@ -347,7 +374,11 @@ function App() {
                       bgColor={"#2F9B7C"}
                     >
                       <CardBody>
-                        <input type="checkbox" />
+                        <input
+                          id={`checkboxCienteLegislacao_${test.id}`}
+                          type="checkbox"
+                          checked={test.ciente === "S"}
+                          onChange={() => salvaCienteLei(test.id)} />
                         <Text color={"white"}>
                           {test.origem} - {test.requisito} - {test.resumo}
                         </Text>
