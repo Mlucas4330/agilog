@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
+  BrowserRouter,
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom"
@@ -10,6 +11,7 @@ import LoginPage from './pages/LoginPage.jsx'
 import StatisticsPage from './pages/StatisticsPage.jsx'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
+import Menu from './components/Menu.jsx'
 
 const theme = extendTheme({
   styles: {
@@ -24,7 +26,12 @@ const theme = extendTheme({
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <>
+      <Header />
+      <Menu />
+      <App />
+      <Footer />
+    </>
   },
   {
     path: "/login",
@@ -32,14 +39,17 @@ const router = createBrowserRouter([
   },
   {
     path: "/estatisticas",
-    element: <StatisticsPage />,
+    element: <>
+      <Header />
+      <Menu />
+      <StatisticsPage />
+      <Footer />
+    </>
   },
 ])
 
 createRoot(document.getElementById('root')).render(
   <ChakraProvider theme={theme}>
-    <Header />
     <RouterProvider router={router} />
-    <Footer />
   </ChakraProvider>
 )
