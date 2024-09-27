@@ -50,11 +50,14 @@ function App() {
   const paginaEstatistica = () => {
     navigate("/estatisticas");
   };
+  const paginaInicial = () => {
+    navigate("/");
+  };
   const menus = [
     {
-      label: "Dashboard",
+      label: "Inicio",
       icon: <FaHome />,
-      action: () => console.log("Dashboard clicado"),
+      action: () => paginaInicial(),
     },
     {
       label: "Usuário",
@@ -72,7 +75,7 @@ function App() {
       action: () => geraExcel(),
     },
     {
-      label: "Estatísticas",
+      label: "Dashboard",
       icon: <FaFileAlt />,
       action: () => paginaEstatistica(),
     },
@@ -237,9 +240,7 @@ function App() {
   const buscaObrigacao = async () => {
     const cod_cliente = getCodClienteFromURL();
     const response = await fetch(
-      "https://www.legnet.com.br/legnet/api/json/2791/legislacoesAtualizadasResumo.json" +
-        "?_=" +
-        new Date().getTime()
+      "https://www.legnet.com.br/legnet/api/agilog/jsonLocal.php"
     );
 
     const data = await response.json();
