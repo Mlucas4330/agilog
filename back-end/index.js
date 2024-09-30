@@ -18,6 +18,7 @@ const enviaObrigacao = async (
   origem,
   requisito,
   obrigacao,
+  ordem,
   resumo,
   local_interdicao,
   tipo_veiculo,
@@ -71,7 +72,7 @@ const enviaObrigacao = async (
     );
 
     const resposta = await fetch(
-      "https://www.legnet.com.br/legnet/api/agilog/insertOuUpdateDasLeis.php",
+      "http://localhost/legnet/api/agilog/insertOuUpdateDasLeis.php",
       {
         method: "POST",
         headers: {
