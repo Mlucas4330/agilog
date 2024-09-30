@@ -18,6 +18,7 @@ import {
   Flex,
   Avatar,
   Image,
+  Tooltip,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import {
@@ -482,7 +483,6 @@ function App() {
                         <AccordionPanel
                           key={index}
                           pb={4}
-                          title={test.resumo}
                           bgColor={"white"}
                           display={"flex"}
                           gap={"5px"}
@@ -499,7 +499,9 @@ function App() {
                             checked={test.ciente === "S"}
                             onChange={() => salvaCiente(test.id)}
                           />
-                          <Text>{test.local_interdicao}</Text>
+                          <Tooltip label={test.resumo} fontSize={"md"} hasArrow>
+                            <Text>{test.local_interdicao}</Text>
+                          </Tooltip>
                         </AccordionPanel>
                       ))}
                   </AccordionItem>
