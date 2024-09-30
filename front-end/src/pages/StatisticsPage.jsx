@@ -1,9 +1,9 @@
 import { Box, Container, Flex, Heading, Spinner } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { Pie } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from "chart.js";
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
 function StatisticsPage() {
   const [loadingUC, setLoadingUC] = useState(true);
@@ -59,26 +59,45 @@ function StatisticsPage() {
 
     setChartDataUCL(formattedData);
     setLoadingUCL(false);
-  }
+  };
 
   useEffect(() => {
     montaGraficoUC();
     montaGraficoUCL();
   }, []);
 
+  const optionsUC = {
+    plugins: {
+      title: {
+        display: true,
+        text: "Restrições Legais",
+        font: {
+          size: 20,
+        },
+      },
+    },
+  };
+
+  const optionsUCL = {
+    plugins: {
+      title: {
+        display: true,
+        text: "Restrições de Noticias de Trânsito",
+        font: {
+          size: 20,
+        },
+      },
+    },
+  };
   return (
     <>
       <Container maxW={"container.xxl"} minHeight={"100vh"}>
         <Heading as={"h1"} color={"#207155"} fontWeight={"300"} mt={5}>
           AGILOG
         </Heading>
-        <Flex mt={5} justify={'space-evenly'} align={'center'}>
-          <Box>
-            {loadingUC ? <Spinner /> : <Pie data={chartDataUC} />}
-          </Box>
-          <Box>
-            {loadingUCL ? <Spinner /> : <Pie data={chartDataUCL} />}
-          </Box>
+        <Flex mt={5} justify={"space-evenly"} align={"center"}>
+          <Box>{loadingUCL ? <Spinner /> : <Pie data={chartDataUCL} options={optionsUCL} />}</Box>
+          <Box>{loadingUC ? <Spinner /> : <Pie data={chartDataUC} options={optionsUC} />}</Box>
         </Flex>
       </Container>
     </>

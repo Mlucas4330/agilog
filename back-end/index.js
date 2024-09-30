@@ -20,11 +20,14 @@ const enviaObrigacao = async (
   obrigacao,
   resumo,
   local_interdicao,
+  tipo_veiculo,
+  horarios,
   cod_legislacao,
   cod_obrigacao,
   cod_cliente_leg,
   cod_cliente_usr,
-  cod_pais
+  cod_pais,
+  nome_empresa
 ) => {
   try {
     // Log dos parâmetros recebidos
@@ -34,6 +37,8 @@ const enviaObrigacao = async (
       obrigacao,
       resumo,
       local_interdicao,
+      tipo_veiculo,
+      horarios,
       cod_legislacao,
       cod_obrigacao,
       cod_cliente_leg,
@@ -48,11 +53,14 @@ const enviaObrigacao = async (
       obrigacao: obrigacao,
       resumo: resumo,
       local_interdicao: local_interdicao,
+      tipo_veiculo: tipo_veiculo,
+      horarios: horarios,
       cod_legislacao: cod_legislacao,
       cod_obrigacao: cod_obrigacao,
       cod_cliente_leg: cod_cliente_leg,
       cod_cliente_usr: cod_cliente_usr,
       cod_pais: cod_pais,
+      nome_empresa: nome_empresa
     });
 
     // Log dos dados a serem enviados
@@ -404,7 +412,6 @@ app.get("/api/requisitoObrigacao", async function (req, res) {
     const promessas = [];
 
     for (let index = 0; index < dados.length; index++) {
-      if (index > 2) break;
 
       const dado = dados[index];
       const obrigacao = dado.obrigacao;
@@ -417,13 +424,16 @@ app.get("/api/requisitoObrigacao", async function (req, res) {
               dado.origem,
               dado.requisito,
               dado.obrigacao,
-              result.resumo,
-              result.local_interdicao,
+              result.resumo_legislacao,
+              result.local_trecho_interdicao,
+              result.tipo_veiculo,
+              result.horarios,
               dado.cod_legislacao,
               dado.cod_obrigacao,
               dado.cod_cliente_leg,
               dado.cod_cliente_usr,
-              dado.cod_pais
+              dado.cod_pais,
+              dado.empresa
             );
           })
           .catch((errorData) => {

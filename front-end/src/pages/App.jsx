@@ -25,6 +25,8 @@ import {
   Circle,
 } from "@react-google-maps/api";
 
+export const getEmpresa = () => empresa;
+let empresa = "";
 function App() {
   const [teste, setTeste] = useState([]);
   const [obrigacao, setObrigacao] = useState([]);
@@ -32,6 +34,7 @@ function App() {
   const [isLoadingObr, setIsLoadingObr] = useState(true);
   const [markers, setMarkers] = useState([]);
   const [municipios, setMunicipios] = useState([]);
+  const [empresaState, setEmpresa] = useState("");
   const [center, setCenter] = useState({
     lat: -15.77972,
     lng: -47.92972,
@@ -88,11 +91,23 @@ function App() {
         requisitoCell.textContent = item.requisito || "";
 
         const obrigacaoCell = document.createElement("td");
-        obrigacaoCell.textContent = item.obrigacao || "";
+        obrigacaoCell.textContent = item.resumo || "";
+
+        const localInterdicaoCell = document.createElement("td");
+        localInterdicaoCell.textContent = item.local_interdicao || "";
+
+        const tipoVeiculosCell = document.createElement("td");
+        tipoVeiculosCell.textContent = item.tipo_veiculo || "";
+
+        const horariosCell = document.createElement("td");
+        horariosCell.textContent = item.horarios || "";
 
         row.appendChild(origemCell);
         row.appendChild(requisitoCell);
         row.appendChild(obrigacaoCell);
+        row.appendChild(localInterdicaoCell);
+        row.appendChild(tipoVeiculosCell);
+        row.appendChild(horariosCell);
 
         tabelaObrigacao.appendChild(row);
       });
@@ -135,7 +150,7 @@ function App() {
     );
 
     const data = await response.json();
-
+  
     const newMarkers = data.map((item) => ({
       resumo: item.resumo,
       position: item.position,
@@ -156,10 +171,22 @@ function App() {
 
     const data = await response.json();
 
-    // for (let item of data) {
-    //   item.center = await getCenterCircle(item.local_interdicao)
-    // }
-    console.log(data);
+    for (let item of data) {
+      item.position = await getPosition(item.origem, item.local_interdicao);
+    }
+
+    const newMarkers = data.map((item) => ({
+      resumo: item.resumo,
+      position: item.position,
+      cor: "red",
+    }));
+    setMarkers((prevMarker) => [...prevMarker, ...newMarkers]);
+
+    if (data.length > 0) {
+      setEmpresa(data[0].empresa); 
+      empresa = data[0].empresa;
+    }
+
     setObrigacao(data);
     montaExcel(data, "obrigacao");
     setIsLoadingObr(false);
@@ -198,42 +225,25 @@ function App() {
     setIsLoading(false);
   };
 
-  // const geocode = async (address) => {
-  //   const key = "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM";
-  // const geocode = async (address) => {
-  //   const key = "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM";
+  const geocode = async (address) => {
+    const key = "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM";
 
-  //   const response = await fetch(
-  //     `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-  //       address
-  //     )}&key=${key}`
-  //   );
-  //   const response = await fetch(
-  //     `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-  //       address
-  //     )}&key=${key}`
-  //   );
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+        address
+      )}&key=${key}`
+    );
 
-  //   const data = await response.json();
-  //   const data = await response.json();
+    const data = await response.json();
 
-  //   if (data.status === "OK") {
-  //     const location = data.results[0].geometry.location;
-  //   if (data.status === "OK") {
-  //     const location = data.results[0].geometry.location;
-
-  //     return {
-  //       lat: location.lat,
-  //       lng: location.lng,
-  //     };
-  //   }
-  // };
-  //     return {
-  //       lat: location.lat,
-  //       lng: location.lng,
-  //     };
-  //   }
-  // };
+    if (data.status === "OK") {
+      const location = data.results[0].geometry.location;
+      return {
+        lat: location.lat,
+        lng: location.lng,
+      };
+    }
+  };
 
   // const getCenterCircle = async (local_interdicao) => {
   //   if (
@@ -260,15 +270,15 @@ function App() {
   //   return coordenates;
   // };
 
-  // const getPosition = async (municipio, local_interdicao) => {
-  //   if (['N/A', 'Não especificado', 'Nenhuma informação de trânsito no local', ''].includes(local_interdicao)) return
+  const getPosition = async (municipio, local_interdicao) => {
+    if (['N/A', 'Não especificado', 'Nenhuma informação de trânsito no local', ''].includes(local_interdicao)) return
 
-  //   const address = municipio + ', ' + local_interdicao
+    const address = municipio + ', ' + local_interdicao
 
-  //   const coordenates = await geocode(address)
+    const coordenates = await geocode(address)
 
-  //   return coordenates
-  // }
+    return coordenates
+  }
 
   const handleMarker = (resumo, position) => {
     setMarkers((prevMarkers) =>
@@ -338,6 +348,9 @@ function App() {
               <th>Origem</th>
               <th>Requisito</th>
               <th>Obrigação</th>
+              <th>Local Interdição</th>
+              <th>Tipo de veiculos</th>
+              <th>Horarios</th>
             </tr>
           </thead>
           <tbody id="tbodyObrigacoes"></tbody>
@@ -372,6 +385,12 @@ function App() {
                       as={"button"}
                       colorScheme="green"
                       bgColor={"#2F9B7C"}
+                      onClick={() =>
+                        handleMarker(test.resumo, test.position)
+                      }
+                      _hover={{
+                        cursor: "pointer",
+                      }}
                     >
                       <CardBody>
                         <input
@@ -380,7 +399,7 @@ function App() {
                           checked={test.ciente === "S"}
                           onChange={() => salvaCienteLei(test.id)} />
                         <Text color={"white"}>
-                          {test.origem} - {test.requisito} - {test.resumo}
+                          {test.origem} - {test.local_interdicao} - {test.tipo_veiculo} - {test.horarios}
                         </Text>
                       </CardBody>
                     </Card>
