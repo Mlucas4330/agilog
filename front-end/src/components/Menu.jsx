@@ -5,9 +5,10 @@ import { FaTimesCircle } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import { Button, Flex } from "@chakra-ui/react";
-import { getEmpresa } from "../pages/App";
+import { useEmpresa } from "../GlobalContext/EmpresaProvider";
 
 function Menu() {
+    const { empresa } = useEmpresa();
   const getConexaoFromURL = () => {
     let search = window.location.search;
 
@@ -37,7 +38,6 @@ function Menu() {
 };
 
   const geraExcel = () => {
-    const empresa = getEmpresa();
     const tabelaNoticias = document.getElementById("tbl_1");
     const tabelaObrigacoes = document.getElementById("tbl_2");
 

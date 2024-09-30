@@ -16,6 +16,8 @@ import {
   Stack,
   Text,
   Flex,
+  Avatar,
+  Image,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import {
@@ -24,17 +26,17 @@ import {
   Marker,
   Circle,
 } from "@react-google-maps/api";
+import { useEmpresa } from "../GlobalContext/EmpresaProvider";
 
-export const getEmpresa = () => empresa;
-let empresa = "";
 function App() {
+  const { setEmpresa } = useEmpresa();
+
   const [teste, setTeste] = useState([]);
   const [obrigacao, setObrigacao] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingObr, setIsLoadingObr] = useState(true);
   const [markers, setMarkers] = useState([]);
   const [municipios, setMunicipios] = useState([]);
-  const [empresaState, setEmpresa] = useState("");
   const [center, setCenter] = useState({
     lat: -15.77972,
     lng: -47.92972,
@@ -150,7 +152,7 @@ function App() {
     );
 
     const data = await response.json();
-  
+
     const newMarkers = data.map((item) => ({
       resumo: item.resumo,
       position: item.position,
@@ -183,9 +185,9 @@ function App() {
     setMarkers((prevMarker) => [...prevMarker, ...newMarkers]);
 
     if (data.length > 0) {
-      setEmpresa(data[0].empresa); 
-      empresa = data[0].empresa;
+      setEmpresa(data[0].empresa);
     }
+    console.log(data);
 
     setObrigacao(data);
     montaExcel(data, "obrigacao");
@@ -271,14 +273,22 @@ function App() {
   // };
 
   const getPosition = async (municipio, local_interdicao) => {
-    if (['N/A', 'Não especificado', 'Nenhuma informação de trânsito no local', ''].includes(local_interdicao)) return
+    if (
+      [
+        "N/A",
+        "Não especificado",
+        "Nenhuma informação de trânsito no local",
+        "",
+      ].includes(local_interdicao)
+    )
+      return;
 
-    const address = municipio + ', ' + local_interdicao
+    const address = municipio + ", " + local_interdicao;
 
-    const coordenates = await geocode(address)
+    const coordenates = await geocode(address);
 
-    return coordenates
-  }
+    return coordenates;
+  };
 
   const handleMarker = (resumo, position) => {
     setMarkers((prevMarkers) =>
@@ -356,10 +366,7 @@ function App() {
           <tbody id="tbodyObrigacoes"></tbody>
         </table>
       </div>
-      <Container
-        maxW={"container.xxl"}
-        minHeight={"100vh"}
-      >
+      <Container maxW={"container.xxl"} minHeight={"100vh"}>
         <Heading as={"h1"} color={"#207155"} fontWeight={"300"} mt={5}>
           AGILOG
         </Heading>
@@ -385,9 +392,7 @@ function App() {
                       as={"button"}
                       colorScheme="green"
                       bgColor={"#2F9B7C"}
-                      onClick={() =>
-                        handleMarker(test.resumo, test.position)
-                      }
+                      onClick={() => handleMarker(test.resumo, test.position)}
                       _hover={{
                         cursor: "pointer",
                       }}
@@ -397,9 +402,12 @@ function App() {
                           id={`checkboxCienteLegislacao_${test.id}`}
                           type="checkbox"
                           checked={test.ciente === "S"}
-                          onChange={() => salvaCienteLei(test.id)} />
+                          onChange={() => salvaCienteLei(test.id)}
+                        />
                         <Text color={"white"}>
-                          {test.origem} - {test.local_interdicao} - {test.tipo_veiculo} - {test.horarios}
+                          {test.origem} - {test.requisito} - {test.ordem} -{" "}
+                          {test.local_interdicao} - {test.tipo_veiculo} -{" "}
+                          {test.horarios}
                         </Text>
                       </CardBody>
                     </Card>
