@@ -72,7 +72,7 @@ const enviaObrigacao = async (
     );
 
     const resposta = await fetch(
-      "http://localhost/legnet/api/agilog/insertOuUpdateDasLeis.php",
+      "https://www.legnet.com.br/legnet/api/agilog/insertOuUpdateDasLeis.php",
       {
         method: "POST",
         headers: {
