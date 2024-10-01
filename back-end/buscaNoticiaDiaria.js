@@ -120,7 +120,7 @@ const main = async () => {
   for (let municipio of municipios) {
     await buscaNoticia(municipio.label);
   }
-  // await enviaObrigacao();
+  await enviaObrigacao();
 };
 
 // Chama a função principal
