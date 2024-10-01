@@ -63,6 +63,7 @@ const buscaNoticia = async (municipio) => {
     response = await fetch("https://www.legnet.com.br:3001/api/noticias3");
   } else if (municipio === "São Paulo") {
     response = await fetch("https://www.legnet.com.br:3001/api/noticias");
+    response = await fetch("https://www.legnet.com.br:3001/api/noticias5");
   } else if (municipio === "Porto Alegre") {
     response = await fetch("https://www.legnet.com.br:3001/api/noticias4");
   }
