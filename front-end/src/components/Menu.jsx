@@ -12,7 +12,6 @@ function Menu() {
   const getConexaoFromURL = () => {
     let search = window.location.search;
 
-    // Verifica se há o formato errado e corrige a string
     if (search.includes("?conexao?=")) {
       search = search.replace("?conexao?=", "?conexao=");
     }
