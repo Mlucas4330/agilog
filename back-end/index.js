@@ -141,9 +141,9 @@ app.get("/api/noticias", async function (req, res) {
         }
       );
       const data = await response.json();
-      arrayTextos.push(data.message);
+      arrayTextos.push(JSON.parse(data.message));
     }
-
+    console.log(arrayTextos);
     res.json({
       data: arrayTextos,
     });
