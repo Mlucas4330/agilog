@@ -183,12 +183,12 @@ function App() {
       position: item.position,
       cor: "red",
     }));
+
     setMarkers((prevMarker) => [...prevMarker, ...newMarkers]);
 
     if (data.length > 0) {
       setEmpresa(data[0].empresa);
     }
-    console.log(data);
 
     setObrigacao(data);
     montaExcel(data, "obrigacao");
@@ -284,11 +284,18 @@ function App() {
     )
       return;
 
-    const address = municipio + ", " + local_interdicao;
+    const [localAntes, locaisDepois] = local_interdicao.split(", entre");
 
-    const coordenates = await geocode(address);
+    if (locaisDepois) {
+      const address = `${municipio}, ${localAntes.trim()}`;
+      const coordinates = await geocode(address);
 
-    return coordenates;
+      return null;
+    } else {
+      const address = `${municipio}, ${localAntes.trim()}`;
+      const coordinates = await geocode(address);
+      return coordinates;
+    }
   };
 
   const handleMarker = (resumo, position) => {

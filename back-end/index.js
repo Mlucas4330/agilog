@@ -325,7 +325,7 @@ app.get("/api/noticias5", async function (req, res) {
   const page = await context.newPage();
   const arrayTextos = [];
 
-  await page.goto("https://www.otempo.com.br/transito", { timeout: 60000 });
+  await page.goto("https://www.otempo.com.br/transito", { timeout: 100000 });
 
   const inputCidade = "#cityInput";
   const classNameContainer = ".transito__container";
@@ -338,7 +338,7 @@ app.get("/api/noticias5", async function (req, res) {
 
   await page.waitForSelector(botaoPesquisa);
   await page.click(botaoPesquisa);
-  await page.waitForTimeout(10000);
+  await page.waitForTimeout(60000);
 
   const containers = await page.$$(classNameContainer);
   for (const container of containers) {
