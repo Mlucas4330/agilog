@@ -325,7 +325,7 @@ app.get("/api/noticias5", async function (req, res) {
   const page = await context.newPage();
   const arrayTextos = [];
 
-  await page.goto("https://www.otempo.com.br/transito", { timeout: 100000 });
+  await page.goto("https://www.otempo.com.br/transito", { timeout: 120000 });
 
   const inputCidade = "#cityInput";
   const classNameContainer = ".transito__container";
