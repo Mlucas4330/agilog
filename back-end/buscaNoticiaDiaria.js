@@ -33,6 +33,7 @@ const geocode = async (address) => {
 };
 
 const getPosition = async (municipio, local_interdicao) => {
+  let address = "";
   if (
     [
       "N/A",
@@ -42,8 +43,11 @@ const getPosition = async (municipio, local_interdicao) => {
     ].includes(local_interdicao)
   )
     return;
-    
-    const address = municipio.replaceAll(',', '').split(' ').join('+') + "+" + local_interdicao.replaceAll(',', '').split(' ').join('+');
+    if(local_interdicao != "") {
+      address = municipio.replaceAll(',', '').split(' ').join('+') + "+" + local_interdicao.replaceAll(',', '').split(' ').join('+');
+    } else {
+      address = municipio.replaceAll(',', '').split(' ').join('+') + "+" + ", " + local_interdicao;
+    }
     
     const coordenates = await geocode(address);
     console.log(coordenates)
