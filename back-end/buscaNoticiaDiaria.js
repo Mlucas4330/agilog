@@ -42,10 +42,11 @@ const getPosition = async (municipio, local_interdicao) => {
     ].includes(local_interdicao)
   )
     return;
-
-  const address = municipio + ", " + local_interdicao;
-
-  const coordenates = await geocode(address);
+    
+    const address = municipio.replaceAll(',', '').split(' ').join('+') + "+" + local_interdicao.replaceAll(',', '').split(' ').join('+');
+    
+    const coordenates = await geocode(address);
+    console.log(coordenates)
 
   return coordenates;
 };
@@ -62,7 +63,6 @@ const buscaNoticia = async (municipio) => {
   if (municipio === "Taboão da Serra") {
     response = await fetch("https://www.legnet.com.br:3001/api/noticias3");
   } else if (municipio === "São Paulo") {
-    response = await fetch("https://www.legnet.com.br:3001/api/noticias");
     response = await fetch("https://www.legnet.com.br:3001/api/noticias5");
   } else if (municipio === "Porto Alegre") {
     response = await fetch("https://www.legnet.com.br:3001/api/noticias4");
