@@ -39,6 +39,7 @@ function Menu() {
   const geraExcel = () => {
     const tabelaNoticias = document.getElementById("tbl_1");
     const tabelaObrigacoes = document.getElementById("tbl_2");
+    const tabelaNoticiasCompleto = document.getElementById("tbl_3");
 
     const dataAtual = new Date().toLocaleDateString("pt-BR");
     const nomeEmpresa = empresa;
@@ -68,6 +69,7 @@ function Menu() {
 
     inserirCabecalho(tabelaNoticias);
     inserirCabecalho(tabelaObrigacoes);
+    inserirCabecalho(tabelaNoticiasCompleto);
 
     const wb = XLSX.utils.book_new();
 
@@ -77,6 +79,9 @@ function Menu() {
     const wsObrigacoes = XLSX.utils.table_to_sheet(tabelaObrigacoes);
     XLSX.utils.book_append_sheet(wb, wsObrigacoes, "Obrigacoes");
 
+    const wsNoticiasCompleto = XLSX.utils.table_to_sheet(tabelaNoticiasCompleto);
+    XLSX.utils.book_append_sheet(wb, wsNoticiasCompleto, "Todas as noticias");
+    
     XLSX.writeFile(wb, "tabelas.xlsx");
   };
 

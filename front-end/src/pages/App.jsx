@@ -152,6 +152,36 @@ function App() {
 
         tabelaNoticia.appendChild(row);
       });
+    } else if (opcao === "noticiaCompletas") {
+      const tabelaNoticiaCompleto = document.getElementById("tbodyNoticiasCompleto");
+      tabelaNoticiaCompleto.innerHTML = "";
+
+      dados.forEach((item) => {
+        const row = document.createElement("tr");
+
+        const localCell = document.createElement("td");
+        localCell.textContent = item.local_interdicao || "";
+
+        const resumoCell = document.createElement("td");
+        resumoCell.textContent = item.resumo || "";
+
+        const dataCell = document.createElement("td");
+        dataCell.textContent = item.data_inclusao || "";
+
+        const municipioCell = document.createElement("td");
+        municipioCell.textContent = item.municipio || "";
+
+        const fonteCell = document.createElement("td");
+        fonteCell.textContent = "https://www.otempo.com.br/transito" || "";
+
+        row.appendChild(localCell);
+        row.appendChild(resumoCell);
+        row.appendChild(dataCell);
+        row.appendChild(municipioCell);
+        row.appendChild(fonteCell);
+
+        tabelaNoticiaCompleto.appendChild(row);
+      });
     }
   };
 
@@ -183,7 +213,7 @@ function App() {
 
     setTodasNoticias(data);
 
-    // montaExcel(data, "noticia");
+    montaExcel(data, "noticiaCompletas");
   };
 
   const buscaObrigacao = async () => {
@@ -395,6 +425,21 @@ function App() {
           <tbody id="tbodyObrigacoes"></tbody>
         </table>
       </div>
+      <div style={{ display: "none" }} id="table_excel3">
+        <table id="tbl_3">
+          <thead>
+            <tr>
+              <th>Local Interdição</th>
+              <th>Resumo</th>
+              <th>Data Inclusão</th>
+              <th>Local Interdição</th>
+              <th>Municipio</th>
+              <th>Fonte</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyNoticiasCompleto"></tbody>
+        </table>
+      </div>
       <Container maxW={"container.xxl"} minHeight={"100vh"}>
         <Heading as={"h1"} color={"#207155"} fontWeight={"300"} mt={5}>
           AGILOG
@@ -528,7 +573,9 @@ function App() {
                             onChange={() => salvaCiente(test.id)}
                           />
                           <Tooltip label={test.resumo} fontSize={"md"} hasArrow>
-                            <Text>{test.data_inclusao} - {test.local_interdicao}</Text>
+                            <Text>
+                              {test.data_inclusao} - {test.local_interdicao}
+                            </Text>
                           </Tooltip>
                         </AccordionPanel>
                       ))}
@@ -547,8 +594,13 @@ function App() {
           <Heading as={"h4"} size={"lg"} color={"#207155"} fontWeight={"300"}>
             Histórico de Notícias de Trânsito
           </Heading>
-          <Box width={'80%'}>
-            <TableContainer overflowX="auto" overflowY="auto" maxHeight="300px" bg={'white'}>
+          <Box width={"80%"}>
+            <TableContainer
+              overflowX="auto"
+              overflowY="auto"
+              maxHeight="300px"
+              bg={"white"}
+            >
               <Table variant="striped" colorScheme="gray">
                 <Thead>
                   <Tr>
