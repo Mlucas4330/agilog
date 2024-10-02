@@ -26,6 +26,7 @@ import {
   Th,
   Tbody,
   Td,
+  Input,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import {
@@ -46,6 +47,10 @@ function App() {
   const [markers, setMarkers] = useState([]);
   const [municipios, setMunicipios] = useState([]);
   const [todasNoticias, setTodasNoticias] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchLeis, setSearchLeis] = useState("");
+  const [searchTodasNoticias, setSearchTodasNoticias] = useState("");
+
   const [center, setCenter] = useState({
     lat: -15.77972,
     lng: -47.92972,
@@ -76,6 +81,18 @@ function App() {
 
     const data = await response.json();
     setMunicipios(data);
+  };
+
+  const handleInputChange = (e) => {
+    setSearchTerm(e.target.value.toLowerCase());
+  };
+
+  const handleInputLeisChange = (e) => {
+    setSearchLeis(e.target.value.toLowerCase());
+  };
+
+  const handleInputTodasNoticiasChange = (e) => {
+    setSearchTodasNoticias(e.target.value.toLowerCase());
   };
 
   const circleOptions = {
@@ -153,7 +170,9 @@ function App() {
         tabelaNoticia.appendChild(row);
       });
     } else if (opcao === "noticiaCompletas") {
-      const tabelaNoticiaCompleto = document.getElementById("tbodyNoticiasCompleto");
+      const tabelaNoticiaCompleto = document.getElementById(
+        "tbodyNoticiasCompleto"
+      );
       tabelaNoticiaCompleto.innerHTML = "";
 
       dados.forEach((item) => {
@@ -454,38 +473,51 @@ function App() {
             >
               Restrições Legais e Normativas
             </Heading>
+            <Input
+              mb={5}
+              bg={"white"}
+              border={"1px solid lightgray"}
+              placeholder="Pesquisar..."
+              onChange={handleInputLeisChange}
+            />
             {isLoadingObr ? (
               <Spinner />
             ) : (
               <Stack direction="column" maxH={"500px"} overflowY={"auto"}>
-                {obrigacao.map((test, index) => (
-                  <>
-                    <Card
-                      key={index}
-                      as={"button"}
-                      colorScheme="green"
-                      bgColor={"#2F9B7C"}
-                      onClick={() => handleMarker(test.resumo, test.position)}
-                      _hover={{
-                        cursor: "pointer",
-                      }}
-                    >
-                      <CardBody>
-                        <input
-                          id={`checkboxCienteLegislacao_${test.id}`}
-                          type="checkbox"
-                          checked={test.ciente === "S"}
-                          onChange={() => salvaCienteLei(test.id)}
-                        />
-                        <Text color={"white"}>
-                          {test.origem} - {test.requisito} - {test.ordem} -{" "}
-                          {test.local_interdicao} - {test.tipo_veiculo} -{" "}
-                          {test.horarios}
-                        </Text>
-                      </CardBody>
-                    </Card>
-                  </>
-                ))}
+                {obrigacao
+                  .filter(
+                    (test) =>
+                      test.requisito.toLowerCase().includes(searchLeis) ||
+                      test.local_interdicao.toLowerCase().includes(searchLeis)
+                  )
+                  .map((test, index) => (
+                    <>
+                      <Card
+                        key={index}
+                        as={"button"}
+                        colorScheme="green"
+                        bgColor={"#2F9B7C"}
+                        onClick={() => handleMarker(test.resumo, test.position)}
+                        _hover={{
+                          cursor: "pointer",
+                        }}
+                      >
+                        <CardBody>
+                          <input
+                            id={`checkboxCienteLegislacao_${test.id}`}
+                            type="checkbox"
+                            checked={test.ciente === "S"}
+                            onChange={() => salvaCienteLei(test.id)}
+                          />
+                          <Text color={"white"}>
+                            {test.origem} - {test.requisito} - {test.ordem} -{" "}
+                            {test.local_interdicao} - {test.tipo_veiculo} -{" "}
+                            {test.horarios}
+                          </Text>
+                        </CardBody>
+                      </Card>
+                    </>
+                  ))}
               </Stack>
             )}
           </GridItem>
@@ -525,6 +557,13 @@ function App() {
             >
               Notícias de Restrições
             </Heading>
+            <Input
+              mb={5}
+              bg={"white"}
+              border={"1px solid lightgray"}
+              placeholder="Pesquisar..."
+              onChange={handleInputChange}
+            />
             <Accordion allowToggle>
               {isLoading ? (
                 <Spinner />
@@ -550,7 +589,14 @@ function App() {
                       </AccordionButton>
                     </h2>
                     {teste
-                      .filter((test) => test.municipio === municipio.label)
+                      .filter(
+                        (test) =>
+                          test.municipio === municipio.label &&
+                          (test.resumo.toLowerCase().includes(searchTerm) ||
+                            test.local_interdicao
+                              .toLowerCase()
+                              .includes(searchTerm))
+                      )
                       .map((test, index) => (
                         <AccordionPanel
                           key={index}
@@ -590,9 +636,23 @@ function App() {
           flexDirection={"column"}
           alignItems={"center"}
         >
-          <Heading as={"h4"} size={"lg"} color={"#207155"} fontWeight={"300"}>
+          <Heading
+            as={"h4"}
+            size={"lg"}
+            color={"#207155"}
+            fontWeight={"300"}
+            mb={5}
+          >
             Histórico de Notícias de Trânsito
           </Heading>
+          <Input
+            mb={5}
+            bg={"white"}
+            border={"1px solid lightgray"}
+            placeholder="Pesquisar..."
+            onChange={handleInputTodasNoticiasChange}
+            width={'60%'}
+          />
           <Box width={"80%"}>
             <TableContainer
               overflowX="auto"
@@ -610,14 +670,24 @@ function App() {
                   </Tr>
                 </Thead>
                 <Tbody id="tbodyNoticiasTransito">
-                  {todasNoticias.map((item, index) => (
-                    <Tr key={index}>
-                      <Td>{item.local_interdicao || "-"}</Td>
-                      <Td>{item.resumo || "-"}</Td>
-                      <Td>{item.data_inclusao || "-"}</Td>
-                      <Td>{item.municipio || "-"}</Td>
-                    </Tr>
-                  ))}
+                  {todasNoticias
+                    .filter(
+                      (item) =>
+                        item.resumo
+                          .toLowerCase()
+                          .includes(searchTodasNoticias) ||
+                        item.local_interdicao
+                          .toLowerCase()
+                          .includes(searchTodasNoticias)
+                    )
+                    .map((item, index) => (
+                      <Tr key={index}>
+                        <Td>{item.local_interdicao || "-"}</Td>
+                        <Td>{item.resumo || "-"}</Td>
+                        <Td>{item.data_inclusao || "-"}</Td>
+                        <Td>{item.municipio || "-"}</Td>
+                      </Tr>
+                    ))}
                 </Tbody>
               </Table>
             </TableContainer>
