@@ -432,7 +432,6 @@ function App() {
               <th>Local Interdição</th>
               <th>Resumo</th>
               <th>Data Inclusão</th>
-              <th>Local Interdição</th>
               <th>Municipio</th>
               <th>Fonte</th>
             </tr>
