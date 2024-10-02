@@ -111,7 +111,7 @@ function StatisticsPage() {
     plugins: {
       title: {
         display: true,
-        text: "Restrições Legais",
+        text: "Restrições de Noticias de Trânsito",
         font: {
           size: 20,
         },
@@ -123,7 +123,7 @@ function StatisticsPage() {
     plugins: {
       title: {
         display: true,
-        text: "Restrições de Noticias de Trânsito",
+        text: "Restrições Legais",
         font: {
           size: 20,
         },
@@ -160,17 +160,17 @@ function StatisticsPage() {
         </Heading>
         <Flex mt={5} justify={"space-evenly"} align={"center"}>
           <Box>
-            {loadingUC ? (
-              <Spinner />
-            ) : (
-              <Pie data={chartDataUC} options={optionsUC} />
-            )}
-          </Box>
-          <Box>
             {loadingUCL ? (
               <Spinner />
             ) : (
               <Pie data={chartDataUCL} options={optionsUCL} />
+            )}
+          </Box>
+          <Box>
+            {loadingUC ? (
+              <Spinner />
+            ) : (
+              <Pie data={chartDataUC} options={optionsUC} />
             )}
           </Box>
         </Flex>
