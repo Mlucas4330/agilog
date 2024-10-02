@@ -52,7 +52,7 @@ const enviaObrigacao = async (
       origem: origem,
       requisito: requisito,
       obrigacao: obrigacao,
-      ordem: ordem, 
+      ordem: ordem,
       resumo: resumo,
       local_interdicao: local_interdicao,
       tipo_veiculo: tipo_veiculo,
@@ -62,7 +62,7 @@ const enviaObrigacao = async (
       cod_cliente_leg: cod_cliente_leg,
       cod_cliente_usr: cod_cliente_usr,
       cod_pais: cod_pais,
-      nome_empresa: nome_empresa
+      nome_empresa: nome_empresa,
     });
 
     // Log dos dados a serem enviados
@@ -228,6 +228,9 @@ app.get("/api/noticias3", async function (req, res) {
   const inputCidade = "#cityInput";
   const classNameContainer = ".transito__container";
   const classNameWrapper = ".transito__wrapper";
+  const classNameWrapperCity = ".transito__city";
+  const classNameWrapperTimeStamp = ".transito__timestamp";
+  const classNameWrapperDescription = ".transito__description";
   const botaoPesquisa = ".here__autocomplete--results";
 
   await page.click(inputCidade);
@@ -242,19 +245,21 @@ app.get("/api/noticias3", async function (req, res) {
   for (const container of containers) {
     const wrappers = await container.$$(classNameWrapper);
     for (const wrapper of wrappers) {
-      const text = await wrapper.textContent();
-      const response = await fetch(
-        "https://www.legnet.com.br:1330/assistant/asst_Yk2w9azlqy5F6pc9J8QMANSb",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content: text.trim() }),
-        }
-      );
-      const data = await response.json();
-      arrayTextos.push(JSON.parse(data.message));
+      const cityElement = await wrapper.$(classNameWrapperCity);
+      const timeStampElement = await wrapper.$(classNameWrapperTimeStamp);
+      const descriptionElement = await wrapper.$(classNameWrapperDescription);
+
+      const textCity = await cityElement.textContent();
+      const textTimeStamp = await timeStampElement.textContent();
+      const textDescription = await descriptionElement.textContent();
+
+      const textTrimCity = textCity.trim();
+      const textTrimTime = textTimeStamp.trim();
+      const textTrimDesc = textDescription.trim();
+      arrayTextos.push({
+        local_interdicao: textTrimCity,
+        resumo: textTrimTime + " " + textTrimDesc,
+      });
     }
   }
 
@@ -330,6 +335,9 @@ app.get("/api/noticias5", async function (req, res) {
   const inputCidade = "#cityInput";
   const classNameContainer = ".transito__container";
   const classNameWrapper = ".transito__wrapper";
+  const classNameWrapperCity = ".transito__city";
+  const classNameWrapperTimeStamp = ".transito__timestamp";
+  const classNameWrapperDescription = ".transito__description";
   const botaoPesquisa = ".here__autocomplete--results";
 
   await page.click(inputCidade);
@@ -344,19 +352,21 @@ app.get("/api/noticias5", async function (req, res) {
   for (const container of containers) {
     const wrappers = await container.$$(classNameWrapper);
     for (const wrapper of wrappers) {
-      const text = await wrapper.textContent();
-      const response = await fetch(
-        "https://www.legnet.com.br:1330/assistant/asst_Yk2w9azlqy5F6pc9J8QMANSb",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content: text.trim() }),
-        }
-      );
-      const data = await response.json();
-      arrayTextos.push(JSON.parse(data.message));
+      const cityElement = await wrapper.$(classNameWrapperCity);
+      const timeStampElement = await wrapper.$(classNameWrapperTimeStamp);
+      const descriptionElement = await wrapper.$(classNameWrapperDescription);
+
+      const textCity = await cityElement.textContent();
+      const textTimeStamp = await timeStampElement.textContent();
+      const textDescription = await descriptionElement.textContent();
+
+      const textTrimCity = textCity.trim();
+      const textTrimTime = textTimeStamp.trim();
+      const textTrimDesc = textDescription.trim();
+      arrayTextos.push({
+        local_interdicao: textTrimCity,
+        resumo: textTrimTime + " " + textTrimDesc,
+      });
     }
   }
 
@@ -414,7 +424,6 @@ app.get("/api/requisitoObrigacao", async function (req, res) {
     const promessas = [];
 
     for (let index = 0; index < dados.length; index++) {
-
       const dado = dados[index];
       const obrigacao = dado.obrigacao;
 
@@ -450,7 +459,10 @@ app.get("/api/requisitoObrigacao", async function (req, res) {
     await Promise.all(promessas);
 
     // Retorna uma mensagem de sucesso quando tudo for concluído
-    res.send({ok: true, message: "Todas as obrigações foram processadas com sucesso."});
+    res.send({
+      ok: true,
+      message: "Todas as obrigações foram processadas com sucesso.",
+    });
   } catch (error) {
     console.error("Erro ao analisar JSON:", error);
   }

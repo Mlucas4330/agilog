@@ -19,6 +19,13 @@ import {
   Avatar,
   Image,
   Tooltip,
+  TableContainer,
+  Table,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+  Td,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import {
@@ -38,6 +45,7 @@ function App() {
   const [isLoadingObr, setIsLoadingObr] = useState(true);
   const [markers, setMarkers] = useState([]);
   const [municipios, setMunicipios] = useState([]);
+  const [todasNoticias, setTodasNoticias] = useState([]);
   const [center, setCenter] = useState({
     lat: -15.77972,
     lng: -47.92972,
@@ -164,6 +172,18 @@ function App() {
     setTeste((prevTeste) => [...prevTeste, ...data]);
 
     montaExcel(data, "noticia");
+  };
+
+  const buscaTodasNoticias = async () => {
+    const response = await fetch(
+      "https://www.legnet.com.br/legnet/api/agilog/recupera_restricoesTotais.php"
+    );
+
+    const data = await response.json();
+
+    setTodasNoticias(data);
+
+    // montaExcel(data, "noticia");
   };
 
   const buscaObrigacao = async () => {
@@ -341,6 +361,7 @@ function App() {
     buscaObrigacao();
     loadNoticias();
     buscaMunicipio();
+    buscaTodasNoticias();
   }, []);
 
   return (
@@ -507,7 +528,7 @@ function App() {
                             onChange={() => salvaCiente(test.id)}
                           />
                           <Tooltip label={test.resumo} fontSize={"md"} hasArrow>
-                            <Text>{test.local_interdicao}</Text>
+                            <Text>{test.data_inclusao} - {test.local_interdicao}</Text>
                           </Tooltip>
                         </AccordionPanel>
                       ))}
@@ -517,6 +538,40 @@ function App() {
             </Accordion>
           </GridItem>
         </Grid>
+        <Flex
+          mt={5}
+          justifyContent={"center"}
+          flexDirection={"column"}
+          alignItems={"center"}
+        >
+          <Heading as={"h4"} size={"lg"} color={"#207155"} fontWeight={"300"}>
+            Histórico de Notícias de Trânsito
+          </Heading>
+          <Box width={'80%'}>
+            <TableContainer overflowX="auto" overflowY="auto" maxHeight="300px" bg={'white'}>
+              <Table variant="striped" colorScheme="gray">
+                <Thead>
+                  <Tr>
+                    <Th>Local da Interdição</Th>
+                    <Th>Resumo</Th>
+                    <Th>Data da Inclusão</Th>
+                    <Th>Município</Th>
+                  </Tr>
+                </Thead>
+                <Tbody id="tbodyNoticiasTransito">
+                  {todasNoticias.map((item, index) => (
+                    <Tr key={index}>
+                      <Td>{item.local_interdicao || "-"}</Td>
+                      <Td>{item.resumo || "-"}</Td>
+                      <Td>{item.data_inclusao || "-"}</Td>
+                      <Td>{item.municipio || "-"}</Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </TableContainer>
+          </Box>
+        </Flex>
       </Container>
     </>
   );
