@@ -1,3 +1,13 @@
+const { Agent, setGlobalDispatcher } = require('undici')
+
+const agent = new Agent({
+  connect: {
+    rejectUnauthorized: false
+  }
+})
+
+setGlobalDispatcher(agent)
+
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const fetch = require("node-fetch");
