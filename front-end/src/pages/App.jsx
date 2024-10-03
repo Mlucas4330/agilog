@@ -6,7 +6,6 @@ import {
   AccordionIcon,
   AccordionItem,
   Box,
-  Button,
   Card,
   CardBody,
   Container,
@@ -15,49 +14,36 @@ import {
   Heading,
   Stack,
   Text,
-  Flex,
-  Avatar,
-  Image,
-  Tooltip,
-  TableContainer,
-  Table,
-  Thead,
-  Tr,
-  Th,
-  Tbody,
-  Td,
-  Input,
+  Tooltip
 } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   GoogleMap,
   useJsApiLoader,
   Marker,
-  Circle,
+  DirectionsRenderer
 } from "@react-google-maps/api";
 import { useEmpresa } from "../GlobalContext/EmpresaProvider";
+import { libraries } from "../constants";
 
 function App() {
   const { setEmpresa } = useEmpresa();
-
   const [teste, setTeste] = useState([]);
   const [obrigacao, setObrigacao] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingObr, setIsLoadingObr] = useState(true);
   const [markers, setMarkers] = useState([]);
+  const [directions, setDirections] = useState([]);
   const [municipios, setMunicipios] = useState([]);
-  const [todasNoticias, setTodasNoticias] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchLeis, setSearchLeis] = useState("");
-  const [searchTodasNoticias, setSearchTodasNoticias] = useState("");
-
   const [center, setCenter] = useState({
     lat: -15.77972,
     lng: -47.92972,
   });
   const [zoom, setZoom] = useState(4);
+
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM",
+    libraries: libraries,
+    googleMapsApiKey: "AIzaSyAKtn2C4Z2kZOijhAo5Nxrt2MfxGF5NYrI",
   });
 
   const getCodClienteFromURL = () => {
@@ -81,27 +67,6 @@ function App() {
 
     const data = await response.json();
     setMunicipios(data);
-  };
-
-  const handleInputChange = (e) => {
-    setSearchTerm(e.target.value.toLowerCase());
-  };
-
-  const handleInputLeisChange = (e) => {
-    setSearchLeis(e.target.value.toLowerCase());
-  };
-
-  const handleInputTodasNoticiasChange = (e) => {
-    setSearchTodasNoticias(e.target.value.toLowerCase());
-  };
-
-  const circleOptions = {
-    strokeColor: "#FF0000",
-    strokeOpacity: 0.8,
-    strokeWeight: 2,
-    fillColor: "#FF0000",
-    fillOpacity: 0.35,
-    radius: 8000,
   };
 
   const montaExcel = (dados, opcao) => {
@@ -169,38 +134,6 @@ function App() {
 
         tabelaNoticia.appendChild(row);
       });
-    } else if (opcao === "noticiaCompletas") {
-      const tabelaNoticiaCompleto = document.getElementById(
-        "tbodyNoticiasCompleto"
-      );
-      tabelaNoticiaCompleto.innerHTML = "";
-
-      dados.forEach((item) => {
-        const row = document.createElement("tr");
-
-        const localCell = document.createElement("td");
-        localCell.textContent = item.local_interdicao || "";
-
-        const resumoCell = document.createElement("td");
-        resumoCell.textContent = item.resumo || "";
-
-        const dataCell = document.createElement("td");
-        dataCell.textContent = item.data_inclusao || "";
-
-        const municipioCell = document.createElement("td");
-        municipioCell.textContent = item.municipio || "";
-
-        const fonteCell = document.createElement("td");
-        fonteCell.textContent = "https://www.otempo.com.br/transito" || "";
-
-        row.appendChild(localCell);
-        row.appendChild(resumoCell);
-        row.appendChild(dataCell);
-        row.appendChild(municipioCell);
-        row.appendChild(fonteCell);
-
-        tabelaNoticiaCompleto.appendChild(row);
-      });
     }
   };
 
@@ -214,6 +147,7 @@ function App() {
     const newMarkers = data.map((item) => ({
       resumo: item.resumo,
       position: item.position,
+      title: item.local_interdicao,
       cor: "red",
     }));
     setMarkers((prevMarker) => [...prevMarker, ...newMarkers]);
@@ -223,17 +157,47 @@ function App() {
     montaExcel(data, "noticia");
   };
 
-  const buscaTodasNoticias = async () => {
-    const response = await fetch(
-      "https://www.legnet.com.br/legnet/api/agilog/recupera_restricoesTotais.php"
-    );
+  const placeMarkerRoute = (local, pontoA, pontoB, origem) => {
+    const directionsService = new window.google.maps.DirectionsService();
 
-    const data = await response.json();
+    const request = {
+      origin: `${pontoA}, ${origem}`,
+      destination: `${pontoB}, ${origem}`,
+      travelMode: window.google.maps.TravelMode.DRIVING,
+      waypoints: [
+        {
+          location: `${local}, ${origem}`,
+          stopover: true
+        }
+      ]
+    };
 
-    setTodasNoticias(data);
+    directionsService.route(request, (result, status) => {
+      if (status === 'OK') {
+        const legs = result.routes[0].legs;
 
-    montaExcel(data, "noticiaCompletas");
-  };
+        const start = {
+          position: legs[0].start_location,
+          title: pontoA,
+        };
+
+        const mid = {
+          position: legs[0].end_location,
+          title: local,
+        };
+
+        const end = {
+          position: legs[legs.length - 1].end_location,
+          title: pontoB,
+        };
+
+        setMarkers(prev => [...prev, start, mid, end])
+        setDirections(prevDirections => [...prevDirections, result])
+      } else {
+        console.error('Erro: ' + status);
+      }
+    });
+  }
 
   const buscaObrigacao = async () => {
     const cod_cliente = getCodClienteFromURL();
@@ -244,16 +208,26 @@ function App() {
     const data = await response.json();
 
     for (let item of data) {
-      item.position = await getPosition(item.origem, item.local_interdicao);
+      const [local, pontos] = item.local_interdicao.split(", entre ");
+
+
+      if (local && pontos) {
+        const [pontoA, pontoB] = pontos.split(' e ');
+
+        placeMarkerRoute(local, pontoA, pontoB, item.origem)
+      } else {
+        item.position = await getPosition(item.origem, item.local_interdicao);
+
+        const newMarker = {
+          resumo: item.resumo,
+          position: item.position,
+          title: item.local_interdicao,
+          cor: "red",
+        }
+
+        setMarkers(prevMarker => [...prevMarker, newMarker]);
+      }
     }
-
-    const newMarkers = data.map((item) => ({
-      resumo: item.resumo,
-      position: item.position,
-      cor: "red",
-    }));
-
-    setMarkers((prevMarker) => [...prevMarker, ...newMarkers]);
 
     if (data.length > 0) {
       setEmpresa(data[0].empresa);
@@ -297,80 +271,37 @@ function App() {
     setIsLoading(false);
   };
 
-  const geocode = async (address) => {
-    const key = "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM";
+  const geocode = (address) => {
+    const geocoder = new window.google.maps.Geocoder();
 
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-        address
-      )}&key=${key}`
-    );
-
-    const data = await response.json();
-
-    if (data.status === "OK") {
-      const location = data.results[0].geometry.location;
-      return {
-        lat: location.lat,
-        lng: location.lng,
-      };
-    }
+    return new Promise((resolve, reject) => {
+      geocoder.geocode({ address: address }, (results, status) => {
+        if (status === 'OK') {
+          const location = results[0].geometry.location;
+          resolve(location)
+        } else {
+          reject(status)
+        }
+      })
+    })
   };
 
-  // const getCenterCircle = async (local_interdicao) => {
-  //   if (
-  //     !local_interdicao ||
-  //     local_interdicao == "N/A" ||
-  //     local_interdicao == "Não especificado" ||
-  //     local_interdicao == "não mencionado"
-  //   )
-  //     return;
-  // const getCenterCircle = async (local_interdicao) => {
-  //   if (
-  //     !local_interdicao ||
-  //     local_interdicao == "N/A" ||
-  //     local_interdicao == "Não especificado" ||
-  //     local_interdicao == "não mencionado"
-  //   )
-  //     return;
-
-  //   const coordenates = await geocode(local_interdicao);
-  //   const coordenates = await geocode(local_interdicao);
-
-  //   return coordenates;
-  // };
-  //   return coordenates;
-  // };
-
   const getPosition = async (municipio, local_interdicao) => {
-    if (
-      [
-        "N/A",
-        "Não especificado",
-        "Nenhuma informação de trânsito no local",
-        "",
-      ].includes(local_interdicao)
-    )
+    if (["N/A", "Não especificado", "Nenhuma informação de trânsito no local", ""].includes(local_interdicao)) {
       return;
-
-    const [localAntes, locaisDepois] = local_interdicao.split(", entre");
-
-    if (locaisDepois) {
-      const address = `${municipio}, ${localAntes.trim()}`;
-      const coordinates = await geocode(address);
-
-      return null;
-    } else {
-      const address = `${municipio}, ${localAntes.trim()}`;
-      const coordinates = await geocode(address);
-      return coordinates;
     }
+
+    const address = `${local_interdicao}, ${municipio}`;
+
+    const coordinates = await geocode(address);
+
+    return coordinates;
   };
 
   const handleMarker = (resumo, position) => {
     setMarkers((prevMarkers) =>
       prevMarkers.map((marker) =>
-        marker.resumo === resumo
+        marker.resumo1 === resumo
           ? { ...marker, cor: "blue" }
           : { ...marker, cor: "red" }
       )
@@ -410,7 +341,6 @@ function App() {
     buscaObrigacao();
     loadNoticias();
     buscaMunicipio();
-    buscaTodasNoticias();
   }, []);
 
   return (
@@ -444,20 +374,6 @@ function App() {
           <tbody id="tbodyObrigacoes"></tbody>
         </table>
       </div>
-      <div style={{ display: "none" }} id="table_excel3">
-        <table id="tbl_3">
-          <thead>
-            <tr>
-              <th>Local Interdição</th>
-              <th>Resumo</th>
-              <th>Data Inclusão</th>
-              <th>Municipio</th>
-              <th>Fonte</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyNoticiasCompleto"></tbody>
-        </table>
-      </div>
       <Container maxW={"container.xxl"} minHeight={"100vh"}>
         <Heading as={"h1"} color={"#207155"} fontWeight={"300"} mt={5}>
           AGILOG
@@ -473,51 +389,37 @@ function App() {
             >
               Restrições Legais e Normativas
             </Heading>
-            <Input
-              mb={5}
-              bg={"white"}
-              border={"1px solid lightgray"}
-              placeholder="Pesquisar..."
-              onChange={handleInputLeisChange}
-            />
             {isLoadingObr ? (
               <Spinner />
             ) : (
               <Stack direction="column" maxH={"500px"} overflowY={"auto"}>
-                {obrigacao
-                  .filter(
-                    (test) =>
-                      test.requisito.toLowerCase().includes(searchLeis) ||
-                      test.local_interdicao.toLowerCase().includes(searchLeis)
-                  )
-                  .map((test, index) => (
-                    <>
-                      <Card
-                        key={index}
-                        as={"button"}
-                        colorScheme="green"
-                        bgColor={"#2F9B7C"}
-                        onClick={() => handleMarker(test.resumo, test.position)}
-                        _hover={{
-                          cursor: "pointer",
-                        }}
-                      >
-                        <CardBody>
-                          <input
-                            id={`checkboxCienteLegislacao_${test.id}`}
-                            type="checkbox"
-                            checked={test.ciente === "S"}
-                            onChange={() => salvaCienteLei(test.id)}
-                          />
-                          <Text color={"white"}>
-                            {test.origem} - {test.requisito} - {test.ordem} -{" "}
-                            {test.local_interdicao} - {test.tipo_veiculo} -{" "}
-                            {test.horarios}
-                          </Text>
-                        </CardBody>
-                      </Card>
-                    </>
-                  ))}
+                {obrigacao.map((test, index) => (
+                  <React.Fragment key={index}>
+                    <Card
+                      as={"button"}
+                      colorScheme="green"
+                      bgColor={"#2F9B7C"}
+                      onClick={() => handleMarker(test.resumo, test.position)}
+                      _hover={{
+                        cursor: "pointer",
+                      }}
+                    >
+                      <CardBody>
+                        <input
+                          id={`checkboxCienteLegislacao_${test.id}`}
+                          type="checkbox"
+                          checked={test.ciente === "S"}
+                          onChange={() => salvaCienteLei(test.id)}
+                        />
+                        <Text color={"white"}>
+                          {test.origem} - {test.requisito} - {test.ordem} -{" "}
+                          {test.local_interdicao} - {test.tipo_veiculo} -{" "}
+                          {test.horarios}
+                        </Text>
+                      </CardBody>
+                    </Card>
+                  </React.Fragment>
+                ))}
               </Stack>
             )}
           </GridItem>
@@ -530,20 +432,21 @@ function App() {
                 center={center}
                 zoom={zoom}
               >
-                {markers.map((marker, index) => (
-                  <Marker
-                    key={index}
-                    position={marker.position}
-                    icon={`http://maps.google.com/mapfiles/ms/icons/${marker.cor}-dot.png`}
-                  />
-                ))}
-                {obrigacao.map((obr, index) => (
-                  <Circle
-                    key={index}
-                    center={obr.center}
-                    options={circleOptions}
-                  />
-                ))}
+                {
+                  markers.map((marker, index) => (
+                    <Marker
+                      key={index}
+                      position={marker.position}
+                      title={marker.title}
+                      icon={`http://maps.google.com/mapfiles/ms/icons/${marker.cor}-dot.png`}
+                    />
+                  ))
+                }
+                {
+                  directions.map((direction, index) => (
+                    <DirectionsRenderer key={index} directions={direction} />
+                  ))
+                }
               </GoogleMap>
             )}
           </GridItem>
@@ -557,13 +460,6 @@ function App() {
             >
               Notícias de Restrições
             </Heading>
-            <Input
-              mb={5}
-              bg={"white"}
-              border={"1px solid lightgray"}
-              placeholder="Pesquisar..."
-              onChange={handleInputChange}
-            />
             <Accordion allowToggle>
               {isLoading ? (
                 <Spinner />
@@ -589,14 +485,7 @@ function App() {
                       </AccordionButton>
                     </h2>
                     {teste
-                      .filter(
-                        (test) =>
-                          test.municipio === municipio.label &&
-                          (test.resumo.toLowerCase().includes(searchTerm) ||
-                            test.local_interdicao
-                              .toLowerCase()
-                              .includes(searchTerm))
-                      )
+                      .filter((test) => test.municipio === municipio.label)
                       .map((test, index) => (
                         <AccordionPanel
                           key={index}
@@ -618,9 +507,7 @@ function App() {
                             onChange={() => salvaCiente(test.id)}
                           />
                           <Tooltip label={test.resumo} fontSize={"md"} hasArrow>
-                            <Text>
-                              {test.data_inclusao} - {test.local_interdicao}
-                            </Text>
+                            <Text>{test.local_interdicao}</Text>
                           </Tooltip>
                         </AccordionPanel>
                       ))}
@@ -630,69 +517,6 @@ function App() {
             </Accordion>
           </GridItem>
         </Grid>
-        <Flex
-          mt={5}
-          justifyContent={"center"}
-          flexDirection={"column"}
-          alignItems={"center"}
-        >
-          <Heading
-            as={"h4"}
-            size={"lg"}
-            color={"#207155"}
-            fontWeight={"300"}
-            mb={5}
-          >
-            Histórico de Notícias de Trânsito
-          </Heading>
-          <Input
-            mb={5}
-            bg={"white"}
-            border={"1px solid lightgray"}
-            placeholder="Pesquisar..."
-            onChange={handleInputTodasNoticiasChange}
-            width={'60%'}
-          />
-          <Box width={"80%"}>
-            <TableContainer
-              overflowX="auto"
-              overflowY="auto"
-              maxHeight="300px"
-              bg={"white"}
-            >
-              <Table variant="striped" colorScheme="gray">
-                <Thead>
-                  <Tr>
-                    <Th>Local da Interdição</Th>
-                    <Th>Resumo</Th>
-                    <Th>Data da Inclusão</Th>
-                    <Th>Município</Th>
-                  </Tr>
-                </Thead>
-                <Tbody id="tbodyNoticiasTransito">
-                  {todasNoticias
-                    .filter(
-                      (item) =>
-                        item.resumo
-                          .toLowerCase()
-                          .includes(searchTodasNoticias) ||
-                        item.local_interdicao
-                          .toLowerCase()
-                          .includes(searchTodasNoticias)
-                    )
-                    .map((item, index) => (
-                      <Tr key={index}>
-                        <Td>{item.local_interdicao || "-"}</Td>
-                        <Td>{item.resumo || "-"}</Td>
-                        <Td>{item.data_inclusao || "-"}</Td>
-                        <Td>{item.municipio || "-"}</Td>
-                      </Tr>
-                    ))}
-                </Tbody>
-              </Table>
-            </TableContainer>
-          </Box>
-        </Flex>
       </Container>
     </>
   );
