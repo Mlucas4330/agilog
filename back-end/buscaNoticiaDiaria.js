@@ -75,11 +75,11 @@ const buscaNoticia = async (municipio) => {
   // };
 
   if (municipio === "Taboão da Serra") {
-    response = await fetch("https://www.legnet.com.br:3001/api/noticias3");
+    response = await fetch("https://localhost:3001/api/noticias3");
   } else if (municipio === "São Paulo") {
-    response = await fetch("https://www.legnet.com.br:3001/api/noticias5");
+    response = await fetch("https://localhost:3001/api/noticias5");
   } else if (municipio === "Porto Alegre") {
-    response = await fetch("https://www.legnet.com.br:3001/api/noticias4");
+    response = await fetch("https://localhost:3001/api/noticias4");
   }
 
   const { data } = await response.json();
@@ -120,7 +120,7 @@ const enviaNoticia = async (dados) => {
 
 const enviaObrigacao = async () => {
   const response = await fetch(
-    "https://www.legnet.com.br:3001/api/requisitoObrigacao"
+    "https://localhost:3001/api/requisitoObrigacao"
   );
   const data = await response.json();
   
