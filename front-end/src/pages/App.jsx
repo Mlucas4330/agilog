@@ -339,19 +339,25 @@ function App() {
     setIsLoading(false);
   };
 
-  const geocode = (address) => {
-    const geocoder = new window.google.maps.Geocoder();
+  const geocode = async (address) => {
+    const key = "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM";
 
-    return new Promise((resolve, reject) => {
-      geocoder.geocode({ address: address }, (results, status) => {
-        if (status === "OK") {
-          const location = results[0].geometry.location;
-          resolve(location);
-        } else {
-          reject(status);
-        }
-      });
-    });
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+        address
+      )}&key=${key}`
+    );
+
+    const data = await response.json();
+
+    if (data.status === "OK") {
+      const location = data.results[0].geometry.location;
+
+      return {
+        lat: location.lat,
+        lng: location.lng,
+      };
+    }
   };
 
   const getPosition = async (municipio, local_interdicao) => {
