@@ -416,6 +416,7 @@ function App() {
     buscaObrigacao();
     loadNoticias();
     buscaMunicipio();
+    buscaTodasNoticias();
   }, []);
 
   return (
