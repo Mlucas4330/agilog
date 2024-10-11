@@ -1,1 +1,1 @@
-export const libraries = ['geometry', 'places', 'drawing']
+export const libraries = ['geometry', 'places', 'drawing', 'geocoding']
