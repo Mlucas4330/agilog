@@ -36,6 +36,7 @@ import { useEmpresa } from "../GlobalContext/EmpresaProvider";
 import { libraries } from "../constants";
 
 function App() {
+  
   const { setEmpresa } = useEmpresa();
   const [teste, setTeste] = useState([]);
   const [obrigacao, setObrigacao] = useState([]);
@@ -342,7 +343,7 @@ function App() {
   };
 
   const geocode = async (address) => {
-    const key = "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM";
+    const key = import.meta.env.GOOGLE_KEY;
   
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
