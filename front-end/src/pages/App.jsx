@@ -227,54 +227,47 @@ function App() {
     montaExcel(data, "noticiaCompletas");
   };
 
-  const placeMarkerRoute = async (local, pontoA, pontoB, origem, resumo) => {
-    const key = "AIzaSyDy_hmFMZDgpjS7-Jbc8Xq7zp7YzLEJKjM"
-    // const requestPayload = {
-    //   origin: `${pontoA}, ${origem}`,
-    //   destination: `${pontoB}, ${origem}`,
-    //   travelMode: "DRIVING",
-    //   key: key,
-    //   waypoints: [
-    //     {
-    //       location: `${local}, ${origem}`,
-    //       stopover: true,
-    //     },
-    //   ],
-    // };
-    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(pontoA + ', ' + origem)}&destination=${encodeURIComponent(pontoB + ', ' + origem)}&waypoints=${encodeURIComponent(local + ', ' + origem)}&mode=driving&key=${key}`;
-    console.log(url);
-    try {
-      const response = await fetch(url);
-      console.log(response);
-      if (!response.ok) {
-        throw new Error('Erro na requisição: ' + response.statusText);
+  const placeMarkerRoute = (local, pontoA, pontoB, origem, resumo) => {
+    const directionsService = new window.google.maps.DirectionsService();
+
+    const request = {
+      origin: `${pontoA}, ${origem}`,
+      destination: `${pontoB}, ${origem}`,
+      travelMode: window.google.maps.TravelMode.DRIVING,
+      waypoints: [
+        {
+          location: `${local}, ${origem}`,
+          stopover: true,
+        },
+      ],
+    };
+
+    directionsService.route(request, async (result, status) => {
+      if (status === "OK") {
+        const legs = result.routes[0].legs;
+
+        const start = {
+          position: legs[0].start_location,
+          title: pontoA,
+        };
+
+        const position = await getPosition(origem, local);
+        const mid = {
+          title: local,
+          resumo: resumo,
+          cor: "red"
+        };
+
+        const end = {
+          position: legs[legs.length - 1].end_location,
+          title: pontoB,
+        };
+        setMarkers((prev) => [...prev, mid]);
+        setDirections((prevDirections) => [...prevDirections, result]);
+      } else {
+        console.error("Erro: " + status);
       }
-  
-      const result = await response.json();
-  
-      const legs = result.routes[0].legs;
-  
-      const start = {
-        position: legs[0].start_location,
-        title: pontoA,
-      };
-  
-      const mid = {
-        position: legs[0].end_location,
-        title: local,
-        resumo: resumo
-      };
-  
-      const end = {
-        position: legs[legs.length - 1].end_location,
-        title: pontoB,
-      };
-      setMarkers((prev) => [...prev, mid]);
-      setDirections((prevDirections) => [...prevDirections, result]);
-  
-    } catch (error) {
-      console.error('Erro: ', error);
-    }
+    });
   };
 
   const buscaObrigacao = async () => {
@@ -396,6 +389,7 @@ function App() {
           : { ...marker, cor: "red" }
       )
     );
+    console.log(markers);
     setCenter(position);
     setZoom(10);
   };
