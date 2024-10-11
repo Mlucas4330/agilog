@@ -207,6 +207,7 @@ function App() {
       title: item.local_interdicao,
       cor: "red",
     }));
+    
     setMarkers((prevMarker) => [...prevMarker, ...newMarkers]);
 
     setTeste((prevTeste) => [...prevTeste, ...data]);
@@ -226,46 +227,54 @@ function App() {
     montaExcel(data, "noticiaCompletas");
   };
 
-  const placeMarkerRoute = (local, pontoA, pontoB, origem) => {
-    const directionsService = new window.google.maps.DirectionsService();
-
-    const request = {
-      origin: `${pontoA}, ${origem}`,
-      destination: `${pontoB}, ${origem}`,
-      travelMode: window.google.maps.TravelMode.DRIVING,
-      waypoints: [
-        {
-          location: `${local}, ${origem}`,
-          stopover: true,
-        },
-      ],
-    };
-
-    directionsService.route(request, (result, status) => {
-      if (status === "OK") {
-        const legs = result.routes[0].legs;
-
-        const start = {
-          position: legs[0].start_location,
-          title: pontoA,
-        };
-
-        const mid = {
-          position: legs[0].end_location,
-          title: local,
-        };
-
-        const end = {
-          position: legs[legs.length - 1].end_location,
-          title: pontoB,
-        };
-
-        setMarkers((prev) => [...prev, start, mid, end]);
-        setDirections((prevDirections) => [...prevDirections, result]);
-      } else {
-        console.error("Erro: " + status);
+  const placeMarkerRoute = async (local, pontoA, pontoB, origem, resumo) => {
+    const key = "AIzaSyDy_hmFMZDgpjS7-Jbc8Xq7zp7YzLEJKjM"
+    // const requestPayload = {
+    //   origin: `${pontoA}, ${origem}`,
+    //   destination: `${pontoB}, ${origem}`,
+    //   travelMode: "DRIVING",
+    //   key: key,
+    //   waypoints: [
+    //     {
+    //       location: `${local}, ${origem}`,
+    //       stopover: true,
+    //     },
+    //   ],
+    // };
+    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(pontoA + ', ' + origem)}&destination=${encodeURIComponent(pontoB + ', ' + origem)}&waypoints=${encodeURIComponent(local + ', ' + origem)}&mode=driving&key=${key}`;
+    console.log(url);
+    try {
+      const response = await fetch(url);
+      console.log(response);
+      if (!response.ok) {
+        throw new Error('Erro na requisição: ' + response.statusText);
       }
-    });
+  
+      const result = await response.json();
+  
+      const legs = result.routes[0].legs;
+  
+      const start = {
+        position: legs[0].start_location,
+        title: pontoA,
+      };
+  
+      const mid = {
+        position: legs[0].end_location,
+        title: local,
+        resumo: resumo
+      };
+  
+      const end = {
+        position: legs[legs.length - 1].end_location,
+        title: pontoB,
+      };
+      setMarkers((prev) => [...prev, mid]);
+      setDirections((prevDirections) => [...prevDirections, result]);
+  
+    } catch (error) {
+      console.error('Erro: ', error);
+    }
   };
 
   const buscaObrigacao = async () => {
@@ -282,19 +291,19 @@ function App() {
       if (local && pontos) {
         const [pontoA, pontoB] = pontos.split(" e ");
 
-        placeMarkerRoute(local, pontoA, pontoB, item.origem);
+        placeMarkerRoute(local, pontoA, pontoB, item.origem, item.resumo);
       } else {
         item.position = await getPosition(item.origem, item.local_interdicao);
-
+  
         const newMarker = {
           resumo: item.resumo,
           position: item.position,
           title: item.local_interdicao,
           cor: "red",
         };
-
         setMarkers((prevMarker) => [...prevMarker, newMarker]);
       }
+
     }
 
     if (data.length > 0) {
@@ -339,19 +348,25 @@ function App() {
     setIsLoading(false);
   };
 
-  const geocode = (address) => {
-    const geocoder = new window.google.maps.Geocoder();
-
-    return new Promise((resolve, reject) => {
-      geocoder.geocode({ address: address }, (results, status) => {
-        if (status === "OK") {
-          const location = results[0].geometry.location;
-          resolve(location);
-        } else {
-          reject(status);
-        }
-      });
-    });
+  const geocode = async (address) => {
+    const key = "AIzaSyBX7WvQpK5cVjZduDZEoSxK4X-v6ARMyaM";
+  
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+        address
+      )}&key=${key}`
+    );
+  
+    const data = await response.json();
+  
+    if (data.status === "OK") {
+      const location = data.results[0].geometry.location;
+  
+      return {
+        lat: location.lat,
+        lng: location.lng,
+      };
+    }
   };
 
   const getPosition = async (municipio, local_interdicao) => {
@@ -376,7 +391,7 @@ function App() {
   const handleMarker = (resumo, position) => {
     setMarkers((prevMarkers) =>
       prevMarkers.map((marker) =>
-        marker.resumo1 === resumo
+        marker.resumo === resumo
           ? { ...marker, cor: "blue" }
           : { ...marker, cor: "red" }
       )
