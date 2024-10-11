@@ -254,6 +254,7 @@ function App() {
 
         const position = await getPosition(origem, local);
         const mid = {
+          position: position,
           title: local,
           resumo: resumo,
           cor: "red"
@@ -343,7 +344,7 @@ function App() {
   };
 
   const geocode = async (address) => {
-    const key = import.meta.env.GOOGLE_KEY;
+    const key = import.meta.env.VITE_GOOGLE_KEY;
   
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
@@ -390,7 +391,6 @@ function App() {
           : { ...marker, cor: "red" }
       )
     );
-    console.log(markers);
     setCenter(position);
     setZoom(10);
   };
