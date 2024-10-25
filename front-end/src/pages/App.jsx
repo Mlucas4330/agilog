@@ -287,6 +287,16 @@ function App() {
         const [pontoA, pontoB] = pontos.split(" e ");
 
         placeMarkerRoute(local, pontoA, pontoB, item.origem, item.resumo);
+
+        item.position = await getPosition(item.origem, local);
+        const newMarker = {
+          resumo: item.resumo,
+          position: item.position,
+          title: item.local_interdicao,
+          cor: "red",
+        };
+
+        setMarkers((prevMarker) => [...prevMarker, newMarker]);
       } else {
         item.position = await getPosition(item.origem, item.local_interdicao);
   
